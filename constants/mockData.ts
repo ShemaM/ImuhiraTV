@@ -9,6 +9,7 @@ export const NAV_LINKS = [
   { name: "Community & Culture", href: "/category/culture" },
 ];
 
+
 export const FEATURED_ARTICLE = {
   id: 1,
   title: "Siege on the High Plateaux: Minembwe Isolated as Clashes Intensify",

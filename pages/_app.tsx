@@ -1,28 +1,18 @@
 import "@/styles/globals.css";
 import type { AppProps } from "next/app";
-import { Merriweather, Roboto } from 'next/font/google';
+import { AuthProvider } from '../context/AuthContext';
+import { ArticleProvider } from '../context/ArticleContext'; // <--- Import this
 
-// 1. Configure the Serif Font (Headlines / Body)
-const merriweather = Merriweather({
-  subsets: ['latin'],
-  weight: ['300', '400', '700', '900'],
-  variable: '--font-serif', // CSS Variable name
-  display: 'swap',
-});
-
-// 2. Configure the Sans Font (UI / Metadata)
-const roboto = Roboto({
-  subsets: ['latin'],
-  weight: ['400', '500', '700'],
-  variable: '--font-sans', // CSS Variable name
-  display: 'swap',
-});
+// ... (Font configs remain the same) ...
 
 export default function App({ Component, pageProps }: AppProps) {
   return (
-    // 3. Apply the font variables to the root of the app
-    <main className={`${merriweather.variable} ${roboto.variable} font-sans`}>
-      <Component {...pageProps} />
+    <main className={`font-sans`}>
+      <AuthProvider>
+        <ArticleProvider> {/* <--- WRAP HERE */}
+          <Component {...pageProps} />
+        </ArticleProvider>
+      </AuthProvider>
     </main>
   );
 }

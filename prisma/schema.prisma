@@ -1,0 +1,60 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  
+}
+
+// 1. The User (Author or Reader)
+model User {
+  id        Int       @id @default(autoincrement())
+  email     String    @unique
+  name      String?
+  password  String    // We will hash this later
+  role      String    @default("READER") // ADMIN, EDITOR, READER
+  createdAt DateTime  @default(now())
+  
+  posts     Post[]    // A user can write many posts
+  comments  Comment[] // A user can write many comments
+}
+
+// 2. The Article
+model Post {
+  id        Int       @id @default(autoincrement())
+  title     String
+  slug      String    @unique // for URLs like /article/my-first-post
+  content   String    @db.Text // @db.Text allows long articles
+  published Boolean   @default(false)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  authorId  Int
+  author    User      @relation(fields: [authorId], references: [id])
+
+  comments  Comment[]
+  categories Category[] // A post can belong to many categories
+}
+
+// 3. Comments
+model Comment {
+  id        Int      @id @default(autoincrement())
+  content   String
+  createdAt DateTime @default(now())
+
+  postId    Int
+  post      Post     @relation(fields: [postId], references: [id])
+
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+// 4. Categories (e.g., Tech, News)
+model Category {
+  id    Int    @id @default(autoincrement())
+  name  String @unique
+  posts Post[]
+}

@@ -1,6 +1,7 @@
 // components/modals/SearchModal.tsx
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 import { FEATURED_ARTICLE, TRENDING_ARTICLES, LATEST_ARTICLES } from '../../constants/mockData';
 
 interface SearchModalProps {
@@ -11,6 +12,8 @@ interface SearchModalProps {
 export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
   const [query, setQuery] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
+  const router = useRouter();
+  const lng = (router.query.lng as string) || 'en';
 
   // Focus input when modal opens
   useEffect(() => {
@@ -73,12 +76,16 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
           </button>
+        </div>
+
+        {/* Search Results */}
+        <div className="max-h-96 overflow-y-auto">
           {results.map((article: Article) => (
             <Link 
               key={article.id} 
-              href={article.href || `/articles/${article.slug}`}
+              href={article.href || (article.slug ? `/${lng}/articles/${article.slug}` : '#')}
               onClick={onClose}
-              className="block p-4 border-b border-slate-100 hover:bg-white transition-colors group"
+              className="block p-4 border-b border-slate-100 hover:bg-slate-50 transition-colors group"
             >
               <span className="text-xs font-bold text-red-700 uppercase tracking-wider mb-1 block">
                 {article.category?.name || 'News'}

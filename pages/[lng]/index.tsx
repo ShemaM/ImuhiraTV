@@ -14,7 +14,7 @@ import { languages } from '../../i18n/settings';
 
 export default function Home() {
   const router = useRouter();
-  const lng = (router.query.lng as string) || 'en';
+  const lng = router.query.lng?.toString() ?? 'en';
   const { t } = useTranslation(['common', 'articles']);
 
   const translatedFeaturedArticle = {

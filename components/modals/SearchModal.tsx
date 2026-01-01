@@ -83,7 +83,7 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
           {results.map((article: Article) => (
             <Link 
               key={article.id} 
-              href={article.slug ? `/${lng}/articles/${article.slug}` : '#'}
+              href={article.href || (article.slug ? `/${lng}/articles/${article.slug}` : '#')}
               onClick={onClose}
               className="block p-4 border-b border-slate-100 hover:bg-slate-50 transition-colors group"
             >

@@ -1,6 +1,11 @@
 import Link from 'next/link';
+import { useTranslation } from 'next-i18next';
+import { useRouter } from 'next/router';
 
 export default function Footer() {
+  const { t } = useTranslation('common');
+  const router = useRouter();
+  const lng = router.locale || 'en';
   const currentYear = new Date().getFullYear();
 
   return (
@@ -10,11 +15,11 @@ export default function Footer() {
           
           {/* COLUMN 1: BRANDING (Replaces Vercel Logo) */}
           <div className="col-span-1 md:col-span-1">
-            <Link href="/" className="text-2xl font-bold font-serif tracking-tighter text-white hover:text-red-500 transition-colors">
-              THE KIVU MONITOR
+            <Link href={`/${lng}/`} className="text-2xl font-bold font-serif tracking-tighter text-white hover:text-red-500 transition-colors">
+              IMUHIRA
             </Link>
             <p className="mt-4 text-sm text-gray-400 leading-relaxed">
-              Dedicated to truthful reporting on the security, humanitarian, and political dynamics shaping our region.
+              {t('footer.description')}
             </p>
             
             {/* Social Icons (Placeholders) */}
@@ -27,40 +32,41 @@ export default function Footer() {
 
           {/* COLUMN 2: SECTIONS */}
           <div>
-            <h3 className="text-sm font-bold text-gray-200 tracking-wider uppercase mb-4">Sections</h3>
+            <h3 className="text-sm font-bold text-gray-200 tracking-wider uppercase mb-4">{t('footer.sections')}</h3>
             <ul className="space-y-3">
-              <li><Link href="/articles" className="text-gray-400 hover:text-white transition text-sm">Conflict Monitor</Link></li>
-              <li><Link href="/articles" className="text-gray-400 hover:text-white transition text-sm">Humanitarian</Link></li>
-              <li><Link href="/articles" className="text-gray-400 hover:text-white transition text-sm">Regional Politics</Link></li>
-              <li><Link href="/articles" className="text-gray-400 hover:text-white transition text-sm">Community & Culture</Link></li>
+              <li><Link href="/category/history" className="text-gray-400 hover:text-white transition text-sm">{t('footer.history')}</Link></li>
+              <li><Link href="/category/culture" className="text-gray-400 hover:text-white transition text-sm">{t('footer.culture')}</Link></li>
+              <li><Link href="/category/conflict" className="text-gray-400 hover:text-white transition text-sm">{t('footer.conflict')}</Link></li>
+              <li><Link href="/category/stories" className="text-gray-400 hover:text-white transition text-sm">{t('footer.stories')}</Link></li>
             </ul>
           </div>
 
           {/* COLUMN 3: SUPPORT */}
           <div>
-            <h3 className="text-sm font-bold text-gray-200 tracking-wider uppercase mb-4">Support</h3>
+            <h3 className="text-sm font-bold text-gray-200 tracking-wider uppercase mb-4">{t('footer.support')}</h3>
             <ul className="space-y-3">
-              <li><Link href="/about" className="text-gray-400 hover:text-white transition text-sm">About Us</Link></li>
-              <li><Link href="/contact" className="text-gray-400 hover:text-white transition text-sm">Contact</Link></li>
-              <li><Link href="/privacy" className="text-gray-400 hover:text-white transition text-sm">Privacy Policy</Link></li>
-              <li><Link href="/terms" className="text-gray-400 hover:text-white transition text-sm">Terms of Service</Link></li>
+              <li><Link href="/about" className="text-gray-400 hover:text-white transition text-sm">{t('footer.about')}</Link></li>
+              <li><Link href="/our-stance" className="text-gray-400 hover:text-white transition text-sm">{t('footer.ourStance')}</Link></li>
+              <li><Link href="/contact" className="text-gray-400 hover:text-white transition text-sm">{t('footer.contact')}</Link></li>
+              <li><Link href="/privacy" className="text-gray-400 hover:text-white transition text-sm">{t('footer.privacy')}</Link></li>
+              <li><Link href="/terms" className="text-gray-400 hover:text-white transition text-sm">{t('footer.terms')}</Link></li>
             </ul>
           </div>
 
           {/* COLUMN 4: NEWSLETTER */}
           <div>
-            <h3 className="text-sm font-bold text-gray-200 tracking-wider uppercase mb-4">Briefing</h3>
+            <h3 className="text-sm font-bold text-gray-200 tracking-wider uppercase mb-4">{t('footer.briefing')}</h3>
             <p className="text-xs text-gray-400 mb-4">
-              Sign up for our weekly dispatch. No algorithms, just the facts from the ground.
+              {t('footer.newsletterPrompt')}
             </p>
             <form className="flex flex-col gap-2">
               <input 
                 type="email" 
-                placeholder="Email address" 
+                placeholder={t('footer.emailPlaceholder')}
                 className="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded px-3 py-2 focus:outline-none focus:border-red-600"
               />
               <button className="bg-red-600 text-white text-xs font-bold py-2 rounded hover:bg-red-700 transition-colors uppercase tracking-wide">
-                Subscribe
+                {t('footer.subscribe')}
               </button>
             </form>
           </div>
@@ -69,10 +75,10 @@ export default function Footer() {
         {/* BOTTOM BAR */}
         <div className="mt-12 pt-8 border-t border-slate-800 flex flex-col md:flex-row justify-between items-center">
           <p className="text-xs text-slate-500 uppercase">
-            &copy; {currentYear} The Kivu Monitor.
+            &copy; {currentYear} Imuhira.
           </p>
           <p className="text-xs text-slate-500 uppercase mt-2 md:mt-0">
-            Journalism for the People.
+            {t('footer.tagline')}
           </p>
         </div>
       </div>

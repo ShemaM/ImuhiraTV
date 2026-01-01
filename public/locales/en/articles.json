@@ -1,0 +1,54 @@
+{
+  "featured_article": {
+    "title": "The Banyamulenge: A People's History of Resilience and Conflict",
+    "excerpt": "An in-depth look at the history of the Banyamulenge people, from their pastoralist traditions to their current struggle for survival and recognition in the highlands of South Kivu."
+  },
+  "trending_articles": [
+    { 
+      "title": "Twirwaneho and the M23: A Controversial Alliance"
+    },
+    { 
+      "title": "The 'Akagara' Perspective: Voices from within the Pro-Government Faction"
+    },
+    { 
+      "title": "Displaced and Forgotten: The Humanitarian Crisis in Minembwe"
+    },
+    { 
+      "title": "The 'Idubu' Narrative: Self-Defense or Rebellion?"
+    }
+  ],
+  "latest_articles": [
+    {
+      "title": "The Banyamulenge in the Congo Wars: A Story of Shifting Alliances",
+      "excerpt": "From the First Congo War to the present day, the Banyamulenge have been both victims and actors in the conflicts that have ravaged the region. This article explores their complex and often misunderstood role."
+    },
+    {
+      "title": "Who Are the Banyamulenge? Debunking the Myths",
+      "excerpt": "Are they Congolese or Rwandan? This article delves into the history of the Banyamulenge people and the origins of the controversy surrounding their identity."
+    },
+    {
+      "title": "The 'Idubu' vs. 'Akagara' Divide: A New Fault Line in the Banyamulenge Community",
+      "excerpt": "A new generation of Banyamulenge is divided. On one side, the 'Idubu', who support the Twirwaneho militia. On the other, the 'Akagara', who advocate for cooperation with the government. This article explores the origins and implications of this division."
+    },
+    {
+      "title": "Life Under Siege: A Report from Minembwe",
+      "excerpt": "For months, the town of Minembwe has been under siege, cut off from the rest of the world. This is a report from inside the besieged town, where the population is struggling to survive."
+    },
+    {
+      "title": "Inanga: The Sound of the Banyamulenge",
+      "excerpt": "The inanga, a traditional stringed instrument, is at the heart of Banyamulenge culture. This article explores the history of the inanga and its role in Banyamulenge society."
+    },
+    {
+      "title": "The Banyamulenge Diaspora: A Story of Exile and Resilience",
+      "excerpt": "Forced to flee their homeland, the Banyamulenge diaspora has spread across the globe. This article tells the story of their exile and their efforts to preserve their culture and traditions."
+    },
+    {
+      "title": "My Father, the Mulao",
+      "excerpt": "A personal story about growing up as the son of a Banyamulenge chief and the challenges of leadership in a time of conflict."
+    },
+    {
+      "title": "The Day the Cows Didn't Come Home",
+      "excerpt": "A moving story about the impact of cattle raiding on a Banyamulenge family and their struggle to survive."
+    }
+  ]
+}

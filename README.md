@@ -1,4 +1,8 @@
+# Imuhira
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/pages/api-reference/create-next-app).
+
+Imuhira is a platform for the Banyamulenge people to tell their stories and share their culture with the world.
 
 ## Getting Started
 

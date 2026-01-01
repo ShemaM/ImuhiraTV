@@ -2,6 +2,8 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { NAV_LINKS, SITE_NAME } from '../../constants/mockData';
+import { useTranslation } from 'next-i18next';
+import { useRouter } from 'next/router';
 
 // ADD THIS INTERFACE
 interface HeaderProps {
@@ -12,18 +14,25 @@ interface HeaderProps {
 // ACCEPT PROPS HERE
 export default function Header({ onSearchClick, onSubscribeClick }: HeaderProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { t } = useTranslation('common');
+  const router = useRouter();
+
+  const onLangChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const locale = e.target.value;
+    router.push(router.pathname, router.asPath, { locale });
+  };
 
   return (
     <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b-4 border-slate-900 shadow-sm">
       <div className="max-w-7xl mx-auto px-4">
         <div className="h-20 flex items-center justify-between">
           
-          <Link href="/" className="flex flex-col group">
+          <Link href={`/${router.locale}/`} className="flex flex-col group">
             <span className="text-2xl md:text-3xl font-black font-serif uppercase tracking-tighter leading-none text-slate-900 group-hover:text-red-700 transition-colors">
               {SITE_NAME}
             </span>
             <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-red-700 leading-none mt-1">
-              Conflict Monitor
+              {t('Conflict Monitor')}
             </span>
           </Link>
 
@@ -35,7 +44,7 @@ export default function Header({ onSearchClick, onSubscribeClick }: HeaderProps)
                 href={link.href}
                 className="text-xs font-bold text-slate-500 hover:text-red-700 uppercase tracking-widest transition-colors"
               >
-                {link.name}
+                {t(link.name)}
               </Link>
             ))}
             
@@ -54,8 +63,19 @@ export default function Header({ onSearchClick, onSubscribeClick }: HeaderProps)
               onClick={onSubscribeClick}
               className="bg-slate-900 text-white px-5 py-2.5 rounded-sm text-xs font-bold uppercase tracking-widest hover:bg-red-700 transition-colors shadow-sm"
             >
-              Subscribe
+              {t('Subscribe')}
             </button>
+
+            {/* Language Switcher */}
+            <select
+              onChange={onLangChange}
+              defaultValue={router.locale}
+              className="text-xs font-bold text-slate-500 hover:text-red-700 uppercase tracking-widest transition-colors bg-transparent"
+              aria-label="Select language"
+            >
+              <option value="en">English</option>
+              <option value="fr">Français</option>
+            </select>
           </nav>
 
           {/* Mobile Menu Toggle */}
@@ -80,13 +100,13 @@ export default function Header({ onSearchClick, onSubscribeClick }: HeaderProps)
                 onClick={() => { setIsMobileMenuOpen(false); onSearchClick(); }}
                 className="w-full bg-slate-100 text-slate-900 px-4 py-3 rounded-sm text-xs font-bold uppercase tracking-widest hover:bg-slate-200"
               >
-                Search
+                {t('Search')}
               </button>
               <button 
                 onClick={() => { setIsMobileMenuOpen(false); onSubscribeClick(); }}
                 className="w-full bg-red-700 text-white px-4 py-3 rounded-sm text-xs font-bold uppercase tracking-widest hover:bg-red-800"
               >
-                Subscribe
+                {t('Subscribe')}
               </button>
             </div>
           </nav>

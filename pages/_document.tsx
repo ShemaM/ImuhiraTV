@@ -1,16 +1,26 @@
-import { Html, Head, Main, NextScript } from "next/document";
+import Document, { Html, Head, Main, NextScript, DocumentContext } from 'next/document';
+import { dir } from 'i18next';
 
-export default function Document() {
-  return (
-    <Html lang="en">
-      <Head />
-      {/* Added bg-[#FDFBF7] to match your Layout background.
-         Added text-slate-900 for default text color.
-      */}
-      <body className="antialiased bg-[#FDFBF7] text-slate-900">
-        <Main />
-        <NextScript />
-      </body>
-    </Html>
-  );
+class MyDocument extends Document {
+  static async getInitialProps(ctx: DocumentContext) {
+    const initialProps = await Document.getInitialProps(ctx);
+    const lng = ctx.query.lng || 'en'; // Default to 'en' if no lng is present
+    return { ...initialProps, lng };
+  }
+
+  render() {
+    // @ts-ignore
+    const { lng } = this.props;
+    return (
+      <Html lang={lng} dir={dir(lng)}>
+        <Head />
+        <body>
+          <Main />
+          <NextScript />
+        </body>
+      </Html>
+    );
+  }
 }
+
+export default MyDocument;

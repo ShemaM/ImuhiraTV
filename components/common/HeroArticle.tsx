@@ -14,12 +14,13 @@ interface HeroArticleProps {
     published_at: string;
     href?: string; 
   };
+  lng: string;
 }
 
-export default function HeroArticle({ article }: HeroArticleProps) {
+export default function HeroArticle({ article, lng }: HeroArticleProps) {
   // STEP 2 FIX: Consistent Link Construction
   // We prioritize the constructed slug URL to ensure it matches the file structure
-  const validUrl = article.slug ? `/articles/${article.slug}` : '#';
+  const validUrl = article.slug ? `/${lng}/articles/${article.slug}` : '#';
 
   return (
     <section className="mb-12 border-b border-slate-200 pb-12">

@@ -9,9 +9,10 @@ interface TrendingArticle {
 
 interface TrendingWidgetProps {
   articles: TrendingArticle[];
+  lng: string;
 }
 
-export default function TrendingWidget({ articles }: TrendingWidgetProps) {
+export default function TrendingWidget({ articles, lng }: TrendingWidgetProps) {
   return (
     <div className="mb-8">
       <div className="flex items-center mb-6">
@@ -25,7 +26,7 @@ export default function TrendingWidget({ articles }: TrendingWidgetProps) {
         {articles.map((item, index) => {
           // FIX: Force construction of the correct URL if href is missing
           // This ensures it goes to /articles/slug, not just '#'
-          const validUrl = item.slug ? `/articles/${item.slug}` : '#';
+          const validUrl = item.slug ? `/${lng}/articles/${item.slug}` : '#';
 
           return (
             <Link 

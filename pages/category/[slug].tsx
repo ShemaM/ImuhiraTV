@@ -1,138 +1,113 @@
-// pages/category/[slug].tsx
-import { useRouter } from 'next/router';
-import Head from 'next/head';
-import Link from 'next/link';
-import Layout from '../../components/layouts/Layout';
-import Sidebar from '../../components/layouts/Sidebar';
+import { GetStaticPaths, GetStaticProps } from 'next';
+import { useTranslation } from 'next-i18next';
+import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
+import { LATEST_ARTICLES, NAV_LINKS } from '../../constants/mockData';
 import ArticleCard from '../../components/common/ArticleCard';
-import SectionHeader from '../../components/common/SectionHeader';
-import TrendingWidget from '../../components/common/TrendingWidget';
-import { 
-  LATEST_ARTICLES, 
-  TRENDING_ARTICLES, 
-  FEATURED_ARTICLE, 
-  NAV_LINKS, 
-  SITE_NAME 
-} from '../../constants/mockData';
+import { useRouter } from 'next/router';
 
-// 1. DEFINE THE SHAPE OF A FULL ARTICLE
-// This stops TypeScript from confusing it with the smaller Trending articles
+// Types to match your mock data and component expectations
 interface Article {
-  id: number;
+  id: string | number;
   title: string;
   slug: string;
   excerpt: string;
   main_image_url: string;
-  category: { name: string; href?: string };
+  // Ensure category always has a name and optional href
+  category: string | { name: string; href?: string; slug?: string };
   published_at: string;
   author_name?: string;
-  href: string;
 }
 
-export default function CategoryPage() {
-  const router = useRouter();
-  const { slug } = router.query;
+interface CategoryPageProps {
+  articles: Article[];
+  category: { name: string; href: string };
+}
 
-  // Loading State
-  if (!router.isReady || !slug) {
-    return (
-      <Layout>
-        <div className="min-h-[50vh] flex items-center justify-center">
-          <span className="text-slate-400 text-xs font-bold uppercase tracking-widest animate-pulse">
-            Loading Category...
-          </span>
-        </div>
-      </Layout>
-    );
+export default function CategoryPage({ articles, category }: CategoryPageProps) {
+  const router = useRouter();
+  const lng = (router.query.lng as string) || 'en';
+  useTranslation('common');
+
+  if (router.isFallback) {
+    return <div className="p-8 text-center">Loading category...</div>;
   }
 
-  const categorySlug = Array.isArray(slug) ? slug[0] : slug;
-
-  // Find Category Name
-  const categoryInfo = NAV_LINKS.find(
-    (link) => link.href.split('/').pop() === categorySlug
-  );
-  
-  const categoryName = categoryInfo ? categoryInfo.name : (categorySlug.charAt(0).toUpperCase() + categorySlug.slice(1));
-
-  // Combine data sources
-  const allArticles = [FEATURED_ARTICLE, ...LATEST_ARTICLES, ...TRENDING_ARTICLES];
-  
-  // Filter Logic
-  const categoryArticles = allArticles.filter((article): article is Article => {
-    // Safety check: remove articles without full category data (filters out Trending items)
-    if (!('category' in article) || !article.category) return false;
-    if (typeof article.category !== 'object' || !('name' in article.category) || !(article.category as { name: string }).name) return false;
-    if (!('href' in article) || !article.href) return false;
-    
-    const articleCatLower = (article.category as { name: string }).name.toLowerCase();
-    const slugLower = categorySlug.toLowerCase();
-    
-    return articleCatLower.includes(slugLower) || articleCatLower === categoryName.toLowerCase();
-  });
-
-  // 2. THE FIX IS HERE: Type Assertion (as Article[])
-  // We explicitly tell TypeScript that 'uniqueArticles' is a list of full Articles.
-  const uniqueArticles = Array.from(new Set(categoryArticles.map(a => a.id)))
-    .map(id => categoryArticles.find(a => a.id === id)!) as Article[];
+  // Fallback title in case category name is missing
+  const pageTitle = category?.name || 'Category';
 
   return (
-    <Layout>
-      <Head>
-        <title>{categoryName} | {SITE_NAME}</title>
-      </Head>
-
-      <div className="flex flex-col lg:flex-row gap-12">
+    <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+      <h1 className="text-3xl font-bold text-gray-900 mb-8 capitalize">
+        {pageTitle}
+      </h1>
+      
+      <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+        {articles.map((article) => (
+          <ArticleCard 
+            key={article.id} 
+            article={{
+              ...article,
+              // IMPACT: Ensure category is always an object with a name
+              category: typeof article.category === 'string' 
+                ? { name: article.category, href: '#' } 
+                : article.category
+            }} 
+            lng={lng} 
+          />
+        ))}
         
-        {/* === MAIN CONTENT AREA === */}
-        <div className="w-full lg:w-2/3">
-          
-          <nav className="flex items-center text-xs text-slate-400 font-bold uppercase tracking-widest mb-6">
-            <Link href="/" className="hover:text-red-700 transition-colors">Home</Link>
-            <span className="mx-2">/</span>
-            <span className="text-red-700">{categoryName}</span>
-          </nav>
-          
-          <SectionHeader title={categoryName} />
-
-          {uniqueArticles.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-12">
-              {uniqueArticles.map((article) => (
-                <ArticleCard key={article.id} article={article} />
-              ))}
-            </div>
-          ) : (
-            <div className="py-20 text-center bg-slate-50 rounded-sm border border-slate-200">
-              <h3 className="font-serif text-xl font-bold text-slate-900 mb-2">No Reports Found</h3>
-              <p className="text-slate-600 mb-6 text-sm">
-                There are currently no articles filed under <strong>{categoryName}</strong>.
-              </p>
-              <Link href="/" className="text-xs font-bold uppercase tracking-widest text-red-700 hover:text-slate-900 border-b-2 border-red-700 hover:border-slate-900 pb-1 transition-all">
-                Return to Front Page
-              </Link>
-            </div>
-          )}
-
-        </div>
-
-        {/* === SIDEBAR === */}
-        <Sidebar>
-          <TrendingWidget articles={TRENDING_ARTICLES} />
-          
-          <div className="bg-slate-900 p-8 rounded-sm text-center">
-             <h3 className="font-serif font-bold text-white text-lg mb-2">
-               Support Our Reporting on {categoryName}
-             </h3>
-             <p className="text-xs text-slate-400 mb-6 leading-relaxed">
-               Independent monitoring requires resources. Help us keep the world informed.
-             </p>
-             <button className="w-full bg-white text-slate-900 text-xs font-bold uppercase tracking-widest py-3 hover:bg-red-700 hover:text-white transition-colors">
-               Become a Member
-             </button>
-          </div>
-        </Sidebar>
-
+        {articles.length === 0 && (
+           <div className="col-span-full text-center py-12">
+             <p className="text-gray-500 text-lg">No articles found in {pageTitle}.</p>
+           </div>
+        )}
       </div>
-    </Layout>
+    </div>
   );
 }
+
+export const getStaticPaths: GetStaticPaths = async () => {
+  const paths = NAV_LINKS
+    .filter(link => link.href !== '/') 
+    .map((link) => {
+      // Robust slug extraction: splits by slash and grabs the last non-empty segment
+      const parts = link.href.split('/').filter(Boolean);
+      const slug = parts[parts.length - 1]; 
+      return {
+        params: { slug },
+      };
+    });
+
+  return { paths, fallback: true };
+};
+
+export const getStaticProps: GetStaticProps = async ({ params, locale }) => {
+  const slug = (params?.slug as string) || '';
+
+  // 1. Filter Articles
+  const articles = LATEST_ARTICLES.filter((article) => {
+    const categoryName = typeof article.category === 'string' 
+      ? article.category 
+      : article.category.name;
+    
+    // Compare lowercase to avoid 'History' vs 'history' mismatches
+    return categoryName.toLowerCase() === slug.toLowerCase();
+  });
+
+  // 2. Find Category Object (The Fix)
+  // We clean the link href same as we did in getStaticPaths to ensure a match
+  const category = NAV_LINKS.find((link) => {
+    const parts = link.href.split('/').filter(Boolean);
+    const linkSlug = parts[parts.length - 1];
+    return linkSlug?.toLowerCase() === slug.toLowerCase();
+  });
+
+  return {
+    props: {
+      articles,
+      // If category is not found in NAV_LINKS, create a temporary one from the slug
+      category: category || { name: slug, href: '#' },
+      ...(await serverSideTranslations(locale ?? 'en', ['common'])),
+    },
+  };
+};

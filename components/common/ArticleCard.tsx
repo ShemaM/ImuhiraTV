@@ -13,13 +13,14 @@ interface ArticleProps {
     published_at: string;
     author_name?: string;
   };
+  lng: string;
 }
 
-export default function ArticleCard({ article }: ArticleProps) {
+export default function ArticleCard({ article, lng }: ArticleProps) {
   // STEP 1 FIX: Create a robust URL variable.
   // This ensures we point to "/articles/" (plural) + the unique slug.
   // If slug is missing for some reason, it defaults to '#' to prevent crashing.
-  const validUrl = article.slug ? `/articles/${article.slug}` : '#';
+  const validUrl = article.slug ? `/${lng}/articles/${article.slug}` : '#';
 
   return (
     <div className="group flex flex-col h-full">

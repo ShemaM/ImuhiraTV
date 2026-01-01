@@ -1,11 +1,12 @@
+'use client';
 import { createContext, useContext, useState, ReactNode } from 'react';
 import { LATEST_ARTICLES as INITIAL_DATA } from '../constants/mockData';
 
-// Define the shape of an Article
 export interface Article {
   id: number | string;
   title: string;
-  category: string | { name: string; href: string };
+  // IMPACT: Normalize this to always be an object so UI code is cleaner
+  category: { name: string; href: string }; 
   author: string;
   status: 'Published' | 'Draft';
   content?: string;
@@ -19,32 +20,36 @@ interface ArticleContextType {
   deleteArticle: (id: string | number) => void;
 }
 
-const ArticleContext = createContext<ArticleContextType>({} as ArticleContextType);
+// IMPACT: Set default to undefined to force a safety check later
+const ArticleContext = createContext<ArticleContextType | undefined>(undefined);
 
 export function ArticleProvider({ children }: { children: ReactNode }) {
-  // Initialize state with your mock data
-  const [articles, setArticles] = useState<Article[]>(INITIAL_DATA.map(a => ({
-    ...a,
-    // Normalize mock data structure to match our interface
-    author: a.author_name || 'Admin', 
-    status: 'Published' // Default mock items to Published
-  })));
+  const [articles, setArticles] = useState<Article[]>(() => {
+    // We use a callback here so this expensive mapping only runs once on mount
+    return INITIAL_DATA.map(a => ({
+      ...a,
+      id: String(a.id), // Ensure IDs are always strings internally
+      author: a.author_name || 'Admin',
+      status: 'Published',
+      // Normalization logic:
+      category: typeof a.category === 'string' 
+        ? { name: a.category, href: '#' } 
+        : a.category
+    })) as Article[];
+  });
 
-  // 1. ADD
   const addArticle = (newArticle: Article) => {
     setArticles(prev => [newArticle, ...prev]);
   };
 
-  // 2. UPDATE
   const updateArticle = (id: string | number, updatedData: Partial<Article>) => {
     setArticles(prev => prev.map(article => 
-      String(article.id) === String(id) ? { ...article, ...updatedData } : article
+      article.id === String(id) ? { ...article, ...updatedData } : article
     ));
   };
 
-  // 3. DELETE
   const deleteArticle = (id: string | number) => {
-    setArticles(prev => prev.filter(article => String(article.id) !== String(id)));
+    setArticles(prev => prev.filter(article => article.id !== String(id)));
   };
 
   return (
@@ -54,4 +59,11 @@ export function ArticleProvider({ children }: { children: ReactNode }) {
   );
 }
 
-export const useArticles = () => useContext(ArticleContext);
+export const useArticles = () => {
+  const context = useContext(ArticleContext);
+  // IMPACT: Fast fail if used incorrectly
+  if (context === undefined) {
+    throw new Error('useArticles must be used within an ArticleProvider');
+  }
+  return context;
+};

@@ -1,5 +1,7 @@
+'use client'; // <--- 1. Required for any file using hooks (useState, createContext)
+
 import { createContext, useContext, useState, ReactNode } from 'react';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation'; // <--- 2. Updated import for App Router
 
 interface User {
   username: string;
@@ -13,14 +15,15 @@ interface AuthContextType {
   isLoading: boolean;
 }
 
-const AuthContext = createContext<AuthContextType>({} as AuthContextType);
+const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  // 1. Initialize from localStorage safely using a lazy initializer (avoids setState inside effect)
   const [user, setUser] = useState<User | null>(() => {
-    if (typeof window === 'undefined') return null;
-    const storedUser = localStorage.getItem('news_user');
-    return storedUser ? JSON.parse(storedUser) : null;
+    if (typeof window !== 'undefined') {
+      const storedUser = localStorage.getItem('news_user');
+      return storedUser ? JSON.parse(storedUser) : null;
+    }
+    return null;
   });
   const [isLoading] = useState(false);
   const router = useRouter();
@@ -44,4 +47,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 }
 
-export const useAuth = () => useContext(AuthContext);
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};

@@ -1,18 +1,17 @@
-import "@/styles/globals.css";
-import type { AppProps } from "next/app";
+import { AppProps } from 'next/app';
 import { AuthProvider } from '../context/AuthContext';
-import { ArticleProvider } from '../context/ArticleContext'; // <--- Import this
+import { ArticleProvider } from '../context/ArticleContext';
+import '../styles/globals.css';
+import { appWithTranslation } from 'next-i18next';
 
-// ... (Font configs remain the same) ...
-
-export default function App({ Component, pageProps }: AppProps) {
+function MyApp({ Component, pageProps }: AppProps) {
   return (
-    <main className={`font-sans`}>
-      <AuthProvider>
-        <ArticleProvider> {/* <--- WRAP HERE */}
-          <Component {...pageProps} />
-        </ArticleProvider>
-      </AuthProvider>
-    </main>
+    <AuthProvider>
+      <ArticleProvider>
+        <Component {...pageProps} />
+      </ArticleProvider>
+    </AuthProvider>
   );
 }
+
+export default appWithTranslation(MyApp);

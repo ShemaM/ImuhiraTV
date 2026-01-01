@@ -40,7 +40,7 @@ export default function AdminLayout({ children, title }: AdminLayoutProps) {
           </Link>
         </nav>
         <div className="p-4 border-t border-slate-800">
-          <Link href="/" className="flex items-center space-x-3 px-4 py-2 text-red-400 hover:text-red-300 w-full transition-colors">
+          <Link href={`/${lng}/` className="flex items-center space-x-3 px-4 py-2 text-red-400 hover:text-red-300 w-full transition-colors">
             <ArrowLeftOnRectangleIcon className="h-6 w-6" />
             <span className="font-medium">Exit to Site</span>
           </Link>

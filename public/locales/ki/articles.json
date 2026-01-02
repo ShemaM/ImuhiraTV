@@ -1,0 +1,54 @@
+{
+  "featured_article": {
+    "title": "Abanyamulenge: Amateka y'Abantu b'Imbaraga n'Intambara",
+    "excerpt": "Kureba mu bwimbitse amateka y'Abanyamulenge, kuva mu mico yabo yo korora ihene kugeza ku ntambara yabo yo kubaho no kwemezwa mu misozi ya Kivu y'Amajyepfo."
+  },
+  "trending_articles": [
+    { 
+      "title": "Twirwaneho na M23: Ubufatanye Buteye Ibibazo"
+    },
+    { 
+      "title": "Iciyumviro cy'Akagara: Amajwi yo mu Itsinda rya Pro-Guverinoma"
+    },
+    { 
+      "title": "Bahunze Bibagiranwe: Ibibazo by'Abantu muri Minembwe"
+    },
+    { 
+      "title": "Inkuru ya 'Idubu': Kwirwanaho cyangwa Kuigomeka?"
+    }
+  ],
+  "latest_articles": [
+    {
+      "title": "Abanyamulenge mu Ntambara za Kongo: Inkuru y'Ubufatanye Buhinduka",
+      "excerpt": "Kuva mu Ntambara ya Mbere ya Kongo kugeza ubu, Abanyamulenge babaye abahohotewe n'abakora mu ntambara zakomeje akarere. Iyi nkuru ireba uruhare rwabo rukomeye kandi budashoboka kumvikana."
+    },
+    {
+      "title": "Abanyamulenge ni bande? Gushira Ahagaragara Amakuru y'Ibinyoma",
+      "excerpt": "Ni Abanyekongo cyangwa Abanyarwanda? Iyi nkuru ireba amateka y'Abanyamulenge n'inkomoko y'ikibazo kijyanye n'umwirondoro wabo."
+    },
+    {
+      "title": "Amacakubiri ya 'Idubu' n'Akagara': Umurongo Mushya wo Gutandukana mu Banyamulenge",
+      "excerpt": "Urubyiruko rushya rw'Abanyamulenge rwatatanye. Uruhande rumwe, 'Idubu', bashyigikira ingabo za Twirwaneho. Urundi ruhande, 'Akagara', bashaka gufatanya na guverinoma. Iyi nkuru ireba inkomoko n'ingaruka z'iyi amacakubiri."
+    },
+    {
+      "title": "Ubuzima Bwo Kuzungurirwa: Raporo yo muri Minembwe",
+      "excerpt": "Mu mezi, umujyi wa Minembwe wazunguriwaga, uciwe n'isi yose. Iyi ni raporo yo mu mujyi uzunguriye, aho abaturage bahanganye no kubaho."
+    },
+    {
+      "title": "Inanga: Ijwi ry'Abanyamulenge",
+      "excerpt": "Inanga, icyuma cyo mu muco cyagenewe imirya, kiri mu mutima w'umuco w'Abanyamulenge. Iyi nkuru ireba amateka ya inanga n'uruhare rwayo mu muryango w'Abanyamulenge."
+    },
+    {
+      "title": "Abanyamulenge bo Hanze: Inkuru yo Guhunga n'Imbaraga",
+      "excerpt": "Bahatirwa guhunga igihugu cyabo, abanyamulenge bo hanze basabagiye ku isi yose. Iyi nkuru ivuga inkuru yo guhunga kwabo n'imihati yabo yo kubungabunga umuco n'imigenzo yabo."
+    },
+    {
+      "title": "Data, Mulao",
+      "excerpt": "Inkuru y'umuntu ku byo gukurira nk'umuhungu w'umutware w'Abanyamulenge n'ibibazo by'ubuyobozi mu gihe cy'intambara."
+    },
+    {
+      "title": "Umunsi Inka Zitasubiye mu Rugo",
+      "excerpt": "Inkuru ikora ku mutima ku ngaruka z'ubujura bw'inka ku muryango w'Abanyamulenge n'intambara yabo yo kubaho."
+    }
+  ]
+}

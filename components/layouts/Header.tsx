@@ -84,6 +84,8 @@ export default function Header({ onSearchClick, onSubscribeClick }: HeaderProps)
             >
               <option value="en">English</option>
               <option value="fr">Français</option>
+              <option value="sw">Kiswahili</option>
+              <option value="ki">Kinyamulenge</option>
             </select>
           </nav>
 

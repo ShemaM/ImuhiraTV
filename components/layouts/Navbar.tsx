@@ -11,7 +11,7 @@ export default function Navbar() {
   const { user, logout } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const pathname = usePathname();
-  const lng = pathname.split('/')[1];
+  const lng = pathname?.split('/')[1] || 'en';
 
   // Fallback links
   const menuLinks = NAV_LINKS && NAV_LINKS.length > 0 ? NAV_LINKS : [

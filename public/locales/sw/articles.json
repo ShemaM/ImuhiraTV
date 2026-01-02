@@ -1,0 +1,54 @@
+{
+  "featured_article": {
+    "title": "Banyamulenge: Historia ya Watu wa Ustahimilivu na Migogoro",
+    "excerpt": "Mtazamo wa kina juu ya historia ya watu wa Banyamulenge, kutoka mila zao za ufugaji hadi mapambano yao ya sasa kwa kuishi na kutambuliwa katika milima ya Kivu Kusini."
+  },
+  "trending_articles": [
+    { 
+      "title": "Twirwaneho na M23: Ushirikiano Wenye Utata"
+    },
+    { 
+      "title": "Mtazamo wa 'Akagara': Sauti kutoka ndani ya Kikundi cha Pro-Serikali"
+    },
+    { 
+      "title": "Wakimbizi na Waliosahauliwa: Janga la Kibinadamu Minembwe"
+    },
+    { 
+      "title": "Simulizi ya 'Idubu': Kujilinda au Uasi?"
+    }
+  ],
+  "latest_articles": [
+    {
+      "title": "Banyamulenge katika Vita vya Kongo: Hadithi ya Ushirikiano Unaobadilika",
+      "excerpt": "Kutoka Vita vya Kwanza vya Kongo hadi leo, Banyamulenge wamekuwa waathiriwa na wahusika katika migogoro iliyoathiri eneo hilo. Makala hii inachunguza jukumu lao gumu na mara nyingi lisiloelezwa."
+    },
+    {
+      "title": "Banyamulenge ni Nani? Kufunua Hadithi za Uongo",
+      "excerpt": "Je, ni Wakongo au Wanyarwanda? Makala hii inachunguza historia ya watu wa Banyamulenge na asili ya utata unaozunguka utambulisho wao."
+    },
+    {
+      "title": "Mgawanyiko wa 'Idubu' dhidi ya 'Akagara': Mstari Mpya wa Mgawanyiko katika Jamii ya Banyamulenge",
+      "excerpt": "Kizazi kipya cha Banyamulenge kimegawanyika. Upande mmoja, 'Idubu', wanaounga mkono jeshi la Twirwaneho. Upande mwingine, 'Akagara', wanaopendekeza ushirikiano na serikali. Makala hii inachunguza asili na athari za mgawanyiko huu."
+    },
+    {
+      "title": "Maisha Chini ya Kuzingirwa: Ripoti kutoka Minembwe",
+      "excerpt": "Kwa miezi, mji wa Minembwe umekuwa ukizingirwa, ukikatwa na ulimwengu wote. Hii ni ripoti kutoka ndani ya mji uliozingirwa, ambapo wakazi wanapambana kuishi."
+    },
+    {
+      "title": "Inanga: Sauti ya Banyamulenge",
+      "excerpt": "Inanga, ala ya jadi ya nyuzi, iko katikati ya utamaduni wa Banyamulenge. Makala hii inachunguza historia ya inanga na jukumu lake katika jamii ya Banyamulenge."
+    },
+    {
+      "title": "Ughaibuni wa Banyamulenge: Hadithi ya Uhamishoni na Ustahimilivu",
+      "excerpt": "Wakilazimishwa kukimbia nchi yao, ughaibuni wa Banyamulenge umeenea ulimwenguni kote. Makala hii inasimulia hadithi ya uhamishoni wao na juhudi zao za kuhifadhi utamaduni na mila zao."
+    },
+    {
+      "title": "Baba Yangu, Mulao",
+      "excerpt": "Hadithi ya kibinafsi kuhusu kukulia kama mtoto wa chifu wa Banyamulenge na changamoto za uongozi wakati wa migogoro."
+    },
+    {
+      "title": "Siku Ambayo Ng'ombe Hawakarudi Nyumbani",
+      "excerpt": "Hadithi ya kugusa moyo kuhusu athari za wizi wa ng'ombe kwa familia ya Banyamulenge na mapambano yao ya kuishi."
+    }
+  ]
+}

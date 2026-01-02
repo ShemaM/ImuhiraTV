@@ -14,7 +14,7 @@ import { languages } from '../../i18n/settings';
 
 export default function Home() {
   const router = useRouter();
-  const { lng } = router.query;
+  const lng = router.query.lng?.toString() ?? 'en';
   const { t } = useTranslation(['common', 'articles']);
 
   const translatedFeaturedArticle = {
@@ -37,7 +37,7 @@ export default function Home() {
   return (
     <Layout>
       {/* 1. HERO SECTION */}
-      <HeroArticle article={translatedFeaturedArticle} lng={lng as string} />
+      <HeroArticle article={translatedFeaturedArticle} lng={lng} />
 
       <div className="my-8 text-center">
         <p className="text-sm text-gray-600">
@@ -58,12 +58,12 @@ export default function Home() {
             title={t('Latest News')}
             linkHref="/articles" 
             linkText={t('View All News')}
-            lng={lng as string}
+            lng={lng}
           />
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {translatedLatestArticles.map((article) => (
-              <ArticleCard key={article.id} article={article} lng={lng as string} />
+              <ArticleCard key={article.id} article={article} lng={lng} />
             ))}
           </div>
         </div>
@@ -72,7 +72,7 @@ export default function Home() {
         {/* Replaced raw aside with sticky Sidebar wrapper */}
         <Sidebar>
           {/* Replaced raw list with TrendingWidget */}
-          <TrendingWidget articles={translatedTrendingArticles} lng={lng as string} />
+          <TrendingWidget articles={translatedTrendingArticles} lng={lng} />
 
           {/* Advertisement Placeholder */}
           <div className="bg-gray-100 h-64 rounded-lg flex flex-col items-center justify-center text-gray-400 text-sm border-2 border-dashed border-gray-300">

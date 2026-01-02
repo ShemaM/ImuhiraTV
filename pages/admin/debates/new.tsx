@@ -23,7 +23,10 @@ export default function NewDebate() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to create debate');
+        const errorMessage = errorData.details 
+          ? `${errorData.error}: ${errorData.details}` 
+          : (errorData.error || 'Failed to create debate');
+        throw new Error(errorMessage);
       }
 
       router.push('/admin/debates');

@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { db, debates, debateArguments } from '../../../db';
 import { eq } from 'drizzle-orm';
+import { filterValidArguments, transformArgumentsForInsert, formatErrorResponse } from '../../../lib/debate-utils';
 
 export default async function handler(
   req: NextApiRequest,
@@ -38,7 +39,7 @@ export default async function handler(
       });
     } catch (error) {
       console.error('Error fetching debate:', error);
-      return res.status(500).json({ error: 'Failed to fetch debate' });
+      return res.status(500).json(formatErrorResponse(error, 'Failed to fetch debate'));
     }
   }
 
@@ -97,29 +98,19 @@ export default async function handler(
       // Delete existing arguments and insert new ones
       await db.delete(debateArguments).where(eq(debateArguments.debateId, debateId));
 
-      // Insert updated Idubu arguments
-      if (idubuArguments && idubuArguments.length > 0) {
+      // Insert updated Idubu arguments (filter out empty arguments)
+      const validIdubuArgs = filterValidArguments(idubuArguments);
+      if (validIdubuArgs.length > 0) {
         await db.insert(debateArguments).values(
-          idubuArguments.map((arg: { speakerName?: string; argument: string }, index: number) => ({
-            debateId: debateId,
-            faction: 'idubu' as const,
-            speakerName: arg.speakerName,
-            argument: arg.argument,
-            orderIndex: index,
-          }))
+          transformArgumentsForInsert(validIdubuArgs, debateId, 'idubu')
         );
       }
 
-      // Insert updated Akagara arguments
-      if (akagaraArguments && akagaraArguments.length > 0) {
+      // Insert updated Akagara arguments (filter out empty arguments)
+      const validAkagaraArgs = filterValidArguments(akagaraArguments);
+      if (validAkagaraArgs.length > 0) {
         await db.insert(debateArguments).values(
-          akagaraArguments.map((arg: { speakerName?: string; argument: string }, index: number) => ({
-            debateId: debateId,
-            faction: 'akagara' as const,
-            speakerName: arg.speakerName,
-            argument: arg.argument,
-            orderIndex: index,
-          }))
+          transformArgumentsForInsert(validAkagaraArgs, debateId, 'akagara')
         );
       }
 
@@ -138,7 +129,7 @@ export default async function handler(
       });
     } catch (error) {
       console.error('Error updating debate:', error);
-      return res.status(500).json({ error: 'Failed to update debate' });
+      return res.status(500).json(formatErrorResponse(error, 'Failed to update debate'));
     }
   }
 
@@ -156,7 +147,7 @@ export default async function handler(
       return res.status(200).json({ message: 'Debate deleted successfully' });
     } catch (error) {
       console.error('Error deleting debate:', error);
-      return res.status(500).json({ error: 'Failed to delete debate' });
+      return res.status(500).json(formatErrorResponse(error, 'Failed to delete debate'));
     }
   }
 

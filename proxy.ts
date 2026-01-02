@@ -4,6 +4,11 @@ import { fallbackLng, languages } from './i18n/settings';
 export function proxy(req: NextRequest) {
   const pathname = req.nextUrl.pathname;
 
+  // Skip admin routes - they don't need locale prefixes
+  if (pathname.startsWith('/admin')) {
+    return NextResponse.next();
+  }
+
   // Check if there is any supported locale in the pathname
   const pathnameIsMissingLocale = languages.every(
     (locale) => !pathname.startsWith(`/${locale}/`) && pathname !== `/${locale}`

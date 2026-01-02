@@ -1,11 +1,13 @@
 import React from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 import { 
   HomeIcon, 
   DocumentTextIcon, 
   UsersIcon, 
   Cog6ToothIcon, 
-  ArrowLeftOnRectangleIcon 
+  ArrowLeftOnRectangleIcon,
+  ScaleIcon 
 } from '@heroicons/react/24/outline';
 
 interface AdminLayoutProps {
@@ -14,6 +16,22 @@ interface AdminLayoutProps {
 }
 
 export default function AdminLayout({ children, title }: AdminLayoutProps) {
+  const router = useRouter();
+  const currentPath = router.pathname;
+
+  const isActive = (path: string) => {
+    if (path === '/admin' && currentPath === '/admin') return true;
+    if (path !== '/admin' && currentPath.startsWith(path)) return true;
+    return false;
+  };
+
+  const linkClass = (path: string) => 
+    `flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
+      isActive(path) 
+        ? 'bg-slate-800 text-white' 
+        : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+    }`;
+
   return (
     <div className="min-h-screen bg-gray-100 flex font-sans">
       {/* Sidebar */}
@@ -22,19 +40,23 @@ export default function AdminLayout({ children, title }: AdminLayoutProps) {
           <span className="text-xl font-bold tracking-wider">ADMIN PANEL</span>
         </div>
         <nav className="flex-1 px-4 py-6 space-y-2">
-          <Link href="/admin" className="flex items-center space-x-3 px-4 py-3 bg-slate-800 rounded-lg text-white">
+          <Link href="/admin" className={linkClass('/admin')}>
             <HomeIcon className="h-6 w-6" />
             <span className="font-medium">Dashboard</span>
           </Link>
-          <Link href="/admin/posts" className="flex items-center space-x-3 px-4 py-3 text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-colors">
+          <Link href="/admin/debates" className={linkClass('/admin/debates')}>
+            <ScaleIcon className="h-6 w-6" />
+            <span className="font-medium">Debates</span>
+          </Link>
+          <Link href="/admin/posts" className={linkClass('/admin/posts')}>
             <DocumentTextIcon className="h-6 w-6" />
             <span className="font-medium">Articles</span>
           </Link>
-          <Link href="/admin/users" className="flex items-center space-x-3 px-4 py-3 text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-colors">
+          <Link href="/admin/users" className={linkClass('/admin/users')}>
             <UsersIcon className="h-6 w-6" />
             <span className="font-medium">Subscribers</span>
           </Link>
-          <Link href="/admin/settings" className="flex items-center space-x-3 px-4 py-3 text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-colors">
+          <Link href="/admin/settings" className={linkClass('/admin/settings')}>
             <Cog6ToothIcon className="h-6 w-6" />
             <span className="font-medium">Settings</span>
           </Link>

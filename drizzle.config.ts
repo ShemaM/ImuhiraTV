@@ -1,14 +1,16 @@
 import { defineConfig } from "drizzle-kit";
+import "dotenv/config";
 
-// ⚠️ We are hardcoding the URL temporarily to bypass the cache issue
-const FORCE_URL = "postgres://postgres.cjyzedldilwkfmitkrnw:DailyPulse2025@aws-0-eu-west-1.pooler.supabase.com:6543/postgres";
+if (!process.env.DATABASE_URL) {
+  throw new Error("DATABASE_URL environment variable is required. Please create a .env.local file with your database credentials. See .env.local.example for the required format.");
+}
 
 export default defineConfig({
   schema: "./db/schema.ts",
   out: "./drizzle",
   dialect: "postgresql",
   dbCredentials: {
-    url: FORCE_URL,
+    url: process.env.DATABASE_URL,
     // This ignores the SSL error
     ssl: { rejectUnauthorized: false }
   },

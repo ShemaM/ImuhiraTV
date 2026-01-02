@@ -34,7 +34,11 @@ export default async function handler(
       return res.status(200).json(debatesWithArguments);
     } catch (error) {
       console.error('Error fetching debates:', error);
-      return res.status(500).json({ error: 'Failed to fetch debates' });
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      return res.status(500).json({ 
+        error: 'Failed to fetch debates',
+        details: process.env.NODE_ENV === 'development' ? errorMessage : undefined
+      });
     }
   }
 
@@ -80,27 +84,33 @@ export default async function handler(
         })
         .returning();
 
-      // Insert Idubu arguments
-      if (idubuArguments && idubuArguments.length > 0) {
+      // Insert Idubu arguments (filter out empty arguments)
+      const validIdubuArgs = (idubuArguments || []).filter(
+        (arg: { speakerName?: string; argument: string }) => arg.argument && arg.argument.trim()
+      );
+      if (validIdubuArgs.length > 0) {
         await db.insert(debateArguments).values(
-          idubuArguments.map((arg: { speakerName?: string; argument: string }, index: number) => ({
+          validIdubuArgs.map((arg: { speakerName?: string; argument: string }, index: number) => ({
             debateId: newDebate.id,
             faction: 'idubu' as const,
-            speakerName: arg.speakerName,
-            argument: arg.argument,
+            speakerName: arg.speakerName?.trim() || null,
+            argument: arg.argument.trim(),
             orderIndex: index,
           }))
         );
       }
 
-      // Insert Akagara arguments
-      if (akagaraArguments && akagaraArguments.length > 0) {
+      // Insert Akagara arguments (filter out empty arguments)
+      const validAkagaraArgs = (akagaraArguments || []).filter(
+        (arg: { speakerName?: string; argument: string }) => arg.argument && arg.argument.trim()
+      );
+      if (validAkagaraArgs.length > 0) {
         await db.insert(debateArguments).values(
-          akagaraArguments.map((arg: { speakerName?: string; argument: string }, index: number) => ({
+          validAkagaraArgs.map((arg: { speakerName?: string; argument: string }, index: number) => ({
             debateId: newDebate.id,
             faction: 'akagara' as const,
-            speakerName: arg.speakerName,
-            argument: arg.argument,
+            speakerName: arg.speakerName?.trim() || null,
+            argument: arg.argument.trim(),
             orderIndex: index,
           }))
         );
@@ -121,7 +131,11 @@ export default async function handler(
       });
     } catch (error) {
       console.error('Error creating debate:', error);
-      return res.status(500).json({ error: 'Failed to create debate' });
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      return res.status(500).json({ 
+        error: 'Failed to create debate',
+        details: process.env.NODE_ENV === 'development' ? errorMessage : undefined
+      });
     }
   }
 

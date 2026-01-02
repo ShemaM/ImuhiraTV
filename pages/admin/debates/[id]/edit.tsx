@@ -35,7 +35,13 @@ export default function EditDebate() {
     const fetchDebate = async () => {
       try {
         const response = await fetch(`/api/debates/${id}`);
-        if (!response.ok) throw new Error('Failed to fetch debate');
+        if (!response.ok) {
+          const errorData = await response.json();
+          const errorMessage = errorData.details 
+            ? `${errorData.error}: ${errorData.details}` 
+            : (errorData.error || 'Failed to fetch debate');
+          throw new Error(errorMessage);
+        }
         const data = await response.json();
         setDebate(data);
       } catch (err) {
@@ -63,7 +69,10 @@ export default function EditDebate() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to update debate');
+        const errorMessage = errorData.details 
+          ? `${errorData.error}: ${errorData.details}` 
+          : (errorData.error || 'Failed to update debate');
+        throw new Error(errorMessage);
       }
 
       router.push('/admin/debates');

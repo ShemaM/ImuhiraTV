@@ -2,6 +2,7 @@ import { GetStaticPaths, GetStaticProps } from 'next';
 import { useTranslation } from 'next-i18next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { LATEST_ARTICLES, NAV_LINKS } from '../../../constants/mockData';
+import Layout from '../../../components/layouts/Layout';
 import ArticleCard from '../../../components/common/ArticleCard';
 import { useRouter } from 'next/router';
 import { languages } from '../../../i18n/settings';
@@ -37,7 +38,8 @@ export default function CategoryPage({ articles, category }: CategoryPageProps) 
   const pageTitle = category?.name || 'Category';
 
   return (
-    <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+    <Layout title={pageTitle}>
+    <div>
       <h1 className="text-3xl font-bold text-gray-900 mb-8 capitalize">
         {pageTitle}
       </h1>
@@ -64,6 +66,7 @@ export default function CategoryPage({ articles, category }: CategoryPageProps) 
         )}
       </div>
     </div>
+    </Layout>
   );
 }
 

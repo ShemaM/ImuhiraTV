@@ -6,6 +6,7 @@ import { useTranslation } from 'next-i18next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 
 // Component Imports
+import Layout from '../../../components/layouts/Layout';
 import Sidebar from '../../../components/layouts/Sidebar';
 import TrendingWidget from '../../../components/common/TrendingWidget';
 import Badge from '../../../components/common/Badge';
@@ -57,6 +58,7 @@ export default function ArticlePage({ article }: { article: Article }) {
   }
 
   return (
+    <Layout title={article.title}>
     <div className="flex flex-col lg:flex-row gap-12">
       
       {/* === MAIN COLUMN === */}
@@ -188,6 +190,7 @@ export default function ArticlePage({ article }: { article: Article }) {
       </Sidebar>
 
     </div>
+    </Layout>
   );
 }
 

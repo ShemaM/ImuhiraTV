@@ -4,7 +4,7 @@ import Header from './Header';
 import Footer from './Footer';
 import SearchModal from '../modals/SearchModal';     // Ensure you created this file
 import SubscribeModal from '../modals/SubscriberModal'; // Ensure you created this file
-import { SITE_NAME } from '../../constants/mockData';
+import { SITE_NAME } from '../../constants/site';
 
 interface LayoutProps {
   children: React.ReactNode;

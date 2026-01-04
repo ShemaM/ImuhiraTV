@@ -25,3 +25,19 @@ export interface Debate {
     akagara: Argument[];
   };
 }
+
+export interface Article {
+  id: number | string;
+  title: string;
+  slug: string;
+  excerpt: string;
+  main_image_url: string;
+  author_name: string;
+  published_at: string;
+  category: {
+    name: string;
+    href: string;
+  };
+  youtube_video_id?: string;
+  content: string[];
+}

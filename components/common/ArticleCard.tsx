@@ -35,7 +35,7 @@ export default function ArticleCard({ article, lng }: ArticleProps) {
         />
         {/* Badge */}
         <div className="absolute top-2 left-2 z-10">
-          <Badge label={article.category.name} />
+          <Badge label={article.category?.name || 'News'} />
         </div>
       </Link>
 

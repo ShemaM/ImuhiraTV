@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useAuth } from '../../context/AuthContext';
 import { Bars3Icon, XMarkIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
-import { SITE_NAME, SITE_LOGO, NAV_LINKS } from '../../constants/mockData';
+import { SITE_NAME, SITE_LOGO, NAV_LINKS } from '../../constants/site';
 import { usePathname } from 'next/navigation';
 
 export default function Navbar() {

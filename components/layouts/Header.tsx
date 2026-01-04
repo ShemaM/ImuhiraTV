@@ -1,7 +1,7 @@
 // components/layouts/Header.tsx
 import { useState } from 'react';
 import Link from 'next/link';
-import { NAV_LINKS, SITE_NAME } from '../../constants/mockData';
+import { NAV_LINKS, SITE_NAME } from '../../constants/site';
 import { useTranslation } from 'next-i18next';
 import { useRouter } from 'next/router';
 

@@ -8,36 +8,28 @@ import HeroArticle from '../../components/common/HeroArticle';
 import ArticleCard from '../../components/common/ArticleCard';
 import SectionHeader from '../../components/common/SectionHeader';
 import TrendingWidget from '../../components/common/TrendingWidget';
-import { FEATURED_ARTICLE, LATEST_ARTICLES, TRENDING_ARTICLES } from '../../constants/mockData';
 import Layout from '../../components/layouts/Layout';
 import { languages } from '../../i18n/settings';
+import { db } from '../../db';
+import { debates } from '../../db/schema';
+import { desc } from 'drizzle-orm';
+import { Article } from '../../types';
 
-export default function Home() {
+interface HomeProps {
+  featuredArticle: Article;
+  latestArticles: Article[];
+  trendingArticles: Article[];
+}
+
+export default function Home({ featuredArticle, latestArticles, trendingArticles }: HomeProps) {
   const router = useRouter();
   const lng = router.query.lng?.toString() ?? 'en';
   const { t } = useTranslation(['common', 'articles']);
 
-  const translatedFeaturedArticle = {
-    ...FEATURED_ARTICLE,
-    title: t(`articles:featured_article.title`, FEATURED_ARTICLE.title),
-    excerpt: t(`articles:featured_article.excerpt`, FEATURED_ARTICLE.excerpt),
-  };
-
-  const translatedLatestArticles = LATEST_ARTICLES.map((article, index) => ({
-    ...article,
-    title: t(`articles:latest_articles.${index}.title`, article.title),
-    excerpt: t(`articles:latest_articles.${index}.excerpt`, article.excerpt),
-  }));
-
-  const translatedTrendingArticles = TRENDING_ARTICLES.map((article, index) => ({
-    ...article,
-    title: t(`articles:trending_articles.${index}.title`, article.title),
-  }));
-
   return (
     <Layout>
       {/* 1. HERO SECTION */}
-      <HeroArticle article={translatedFeaturedArticle} lng={lng} />
+      {featuredArticle && <HeroArticle article={featuredArticle} lng={lng} />}
 
       <div className="my-8 text-center">
         <p className="text-sm text-gray-600">
@@ -53,7 +45,6 @@ export default function Home() {
         
         {/* 2. MAIN CONTENT COLUMN (Left, 2/3 width) */}
         <div className="w-full lg:w-2/3">
-          {/* Replaced raw h2 with standardized SectionHeader */}
           <SectionHeader 
             title={t('Latest News')}
             linkHref="/articles" 
@@ -62,17 +53,15 @@ export default function Home() {
           />
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {translatedLatestArticles.map((article) => (
+            {latestArticles.map((article) => (
               <ArticleCard key={article.id} article={article} lng={lng} />
             ))}
           </div>
         </div>
 
         {/* 3. SIDEBAR (Right, 1/3 width) */}
-        {/* Replaced raw aside with sticky Sidebar wrapper */}
         <Sidebar>
-          {/* Replaced raw list with TrendingWidget */}
-          <TrendingWidget articles={translatedTrendingArticles} lng={lng} />
+          <TrendingWidget articles={trendingArticles} lng={lng} />
 
           {/* Advertisement Placeholder */}
           <div className="bg-gray-100 h-64 rounded-lg flex flex-col items-center justify-center text-gray-400 text-sm border-2 border-dashed border-gray-300">
@@ -100,6 +89,7 @@ export default function Home() {
   );
 }
 
+
 export const getStaticPaths: GetStaticPaths = async () => {
   const paths = languages.map(lng => ({ params: { lng } }));
   
@@ -109,9 +99,28 @@ export const getStaticPaths: GetStaticPaths = async () => {
   };
 };
 
-export const getStaticProps: GetStaticProps = async ({ params }) => ({
-  props: {
-    lng: params?.lng || 'en',
-    ...(await serverSideTranslations(params?.lng as string || 'en', ['common', 'articles'])),
-  },
-});
+export const getStaticProps: GetStaticProps = async ({ params }) => {
+  const allArticlesRaw = await db.select().from(debates).orderBy(desc(debates.publishedAt)).execute();
+
+  const allArticles = allArticlesRaw.map(a => ({
+    ...a,
+    publishedAt: a.publishedAt ? a.publishedAt.toISOString() : null,
+    createdAt: a.createdAt ? a.createdAt.toISOString() : null,
+  }));
+
+  const featuredArticle = allArticles[0] || null;
+  const latestArticles = allArticles.slice(1, 5);
+  // For now, "trending" is the same as "latest".
+  const trendingArticles = allArticles.slice(0, 5);
+
+  return {
+    props: {
+      lng: params?.lng || 'en',
+      ...(await serverSideTranslations(params?.lng as string || 'en', ['common', 'articles'])),
+      featuredArticle,
+      latestArticles,
+      trendingArticles,
+    },
+    revalidate: 60, // Re-generate the page every 60 seconds
+  };
+};

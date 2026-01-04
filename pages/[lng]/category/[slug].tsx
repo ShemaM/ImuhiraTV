@@ -1,11 +1,13 @@
 import { GetStaticPaths, GetStaticProps } from 'next';
 import { useTranslation } from 'next-i18next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
-import { LATEST_ARTICLES, NAV_LINKS } from '../../../constants/mockData';
 import Layout from '../../../components/layouts/Layout';
 import ArticleCard from '../../../components/common/ArticleCard';
 import { useRouter } from 'next/router';
 import { languages } from '../../../i18n/settings';
+import { db } from '../../../db';
+import { debates } from '../../../db/schema';
+import { eq } from 'drizzle-orm';
 
 // Types to match your mock data and component expectations
 interface Article {
@@ -71,18 +73,11 @@ export default function CategoryPage({ articles, category }: CategoryPageProps) 
 }
 
 export const getStaticPaths: GetStaticPaths = async () => {
-  const categoryPaths = NAV_LINKS
-    .filter(link => link.href !== '/') 
-    .map((link) => {
-      // Robust slug extraction: splits by slash and grabs the last non-empty segment
-      const parts = link.href.split('/').filter(Boolean);
-      const slug = parts[parts.length - 1]; 
-      return slug;
-    });
+  const topics = await db.selectDistinct({ topic: debates.topic }).from(debates).execute();
 
   const paths = languages.flatMap(lng =>
-    categoryPaths.map(slug => ({
-      params: { lng, slug }
+    topics.map(topic => ({
+      params: { lng, slug: topic.topic.toLowerCase() }
     }))
   );
 
@@ -92,31 +87,29 @@ export const getStaticPaths: GetStaticPaths = async () => {
 export const getStaticProps: GetStaticProps = async ({ params, locale }) => {
   const slug = (params?.slug as string) || '';
 
-  // 1. Filter Articles
-  const articles = LATEST_ARTICLES.filter((article) => {
-    const categoryName = typeof article.category === 'string' 
-      ? article.category 
-      : article.category.name;
-    
-    // Compare lowercase to avoid 'History' vs 'history' mismatches
-    return categoryName.toLowerCase() === slug.toLowerCase();
-  });
+  const articlesData = await db.select().from(debates).where(eq(debates.topic, slug)).execute();
 
-  // 2. Find Category Object (The Fix)
-  // We clean the link href same as we did in getStaticPaths to ensure a match
-  const category = NAV_LINKS.find((link) => {
-    const parts = link.href.split('/').filter(Boolean);
-    const linkSlug = parts[parts.length - 1];
-    return linkSlug?.toLowerCase() === slug.toLowerCase();
-  });
+  const articles = articlesData.map(a => ({
+    ...a,
+    publishedAt: a.publishedAt ? a.publishedAt.toISOString() : null,
+    createdAt: a.createdAt ? a.createdAt.toISOString() : null,
+    category: {
+      name: a.topic,
+      href: `/category/${a.topic.toLowerCase()}`,
+    },
+    content: a.summary ? a.summary.split('\n') : [],
+    excerpt: a.summary ? a.summary.slice(0, 150) : '',
+  }));
+
+  const category = { name: slug, href: `/category/${slug}` };
 
   return {
     props: {
       articles,
-      // If category is not found in NAV_LINKS, create a temporary one from the slug
-      category: category || { name: slug, href: '#' },
+      category,
       lng: params?.lng || 'en',
       ...(await serverSideTranslations(params?.lng as string || locale || 'en', ['common'])),
     },
+    revalidate: 60,
   };
 };

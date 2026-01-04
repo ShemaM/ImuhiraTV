@@ -2,7 +2,6 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { FEATURED_ARTICLE, TRENDING_ARTICLES, LATEST_ARTICLES } from '../../constants/mockData';
 
 interface SearchModalProps {
   isOpen: boolean;
@@ -11,6 +10,7 @@ interface SearchModalProps {
 
 export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
   const [query, setQuery] = useState('');
+  const [results, setResults] = useState([]);
   const inputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
   const lng = (router.query.lng as string) || 'en';
@@ -28,6 +28,33 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
     else document.body.style.overflow = 'unset';
   }, [isOpen]);
 
+  // Fetch search results
+  useEffect(() => {
+    const search = async () => {
+      if (query.length < 2) {
+        setResults([]);
+        return;
+      }
+
+      try {
+        const response = await fetch(`/api/search?query=${query}`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch search results');
+        }
+        const data = await response.json();
+        setResults(data);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    const debounceTimeout = setTimeout(() => {
+      search();
+    }, 300); // Debounce search requests by 300ms
+
+    return () => clearTimeout(debounceTimeout);
+  }, [query]);
+
   if (!isOpen) return null;
 
   // Article type definition
@@ -39,15 +66,6 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
     href?: string;
     slug?: string;
   }
-
-  // Combine all data for searching
-  const allArticles: Article[] = [FEATURED_ARTICLE, ...TRENDING_ARTICLES, ...LATEST_ARTICLES];
-
-  // Filter logic
-  const results = query.length < 2 ? [] : allArticles.filter(article => 
-    article.title.toLowerCase().includes(query.toLowerCase()) ||
-    (typeof article.excerpt === 'string' && article.excerpt.toLowerCase().includes(query.toLowerCase()))
-  );
 
   return (
     <div className="fixed inset-0 z-60 flex items-start justify-center pt-20 px-4">

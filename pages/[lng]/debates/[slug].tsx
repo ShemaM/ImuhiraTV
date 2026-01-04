@@ -9,9 +9,8 @@ import Layout from '../../../components/layouts/Layout';
 import Sidebar from '../../../components/layouts/Sidebar';
 import TrendingWidget from '../../../components/common/TrendingWidget';
 import Badge from '../../../components/common/Badge';
-import { TRENDING_ARTICLES } from '../../../constants/mockData';
 import { db, debates, debateArguments } from '../../../db';
-import { eq } from 'drizzle-orm';
+import { eq, desc } from 'drizzle-orm';
 
 // Types
 interface Argument {
@@ -40,18 +39,13 @@ interface DebateProps {
       akagara: Argument[];
     };
   } | null;
+  trendingArticles: any[];
 }
 
-export default function DebatePage({ debate }: DebateProps) {
+export default function DebatePage({ debate, trendingArticles }: DebateProps) {
   const router = useRouter();
   const { t, i18n } = useTranslation(['common', 'articles']);
   const currentLanguage = i18n.language || (router.query.lng as string) || 'en';
-
-  // Translate trending articles for sidebar
-  const translatedTrendingArticles = TRENDING_ARTICLES.map((item, index) => ({
-    ...item,
-    title: t(`articles:trending_articles.${index}.title`, item.title),
-  }));
 
   if (router.isFallback) {
     return <div className="p-12 text-center">Loading debate...</div>;
@@ -294,7 +288,7 @@ export default function DebatePage({ debate }: DebateProps) {
 
         {/* === SIDEBAR === */}
         <Sidebar>
-          <TrendingWidget articles={translatedTrendingArticles} lng={currentLanguage} />
+          <TrendingWidget articles={trendingArticles} lng={currentLanguage} />
           
           <div className="bg-slate-100 aspect-square w-full rounded-sm flex flex-col items-center justify-center text-slate-400 text-sm border-2 border-dashed border-slate-300">
              <span className="font-bold">{t('Advertisement')}</span>
@@ -355,9 +349,24 @@ export const getServerSideProps: GetServerSideProps = async ({ params, locale })
       },
     };
 
+    const trendingArticlesData = await db.select().from(debates).orderBy(desc(debates.publishedAt)).limit(5).execute();
+
+    const trendingArticles = trendingArticlesData.map(a => ({
+        ...a,
+        publishedAt: a.publishedAt ? a.publishedAt.toISOString() : null,
+        createdAt: a.createdAt ? a.createdAt.toISOString() : null,
+        category: {
+            name: a.topic,
+            href: `/category/${a.topic.toLowerCase()}`
+        },
+        content: a.summary ? a.summary.split('\n') : [],
+        excerpt: a.summary ? a.summary.slice(0, 150) : '',
+    }));
+
     return {
       props: {
         debate: serializedDebate,
+        trendingArticles,
         lng,
         ...(await serverSideTranslations(lng, ['common', 'articles'])),
       },
@@ -367,6 +376,7 @@ export const getServerSideProps: GetServerSideProps = async ({ params, locale })
     return {
       props: {
         debate: null,
+        trendingArticles: [],
         lng,
         ...(await serverSideTranslations(lng, ['common', 'articles'])),
       },

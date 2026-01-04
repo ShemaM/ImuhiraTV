@@ -12,19 +12,16 @@ import Layout from '../../../components/layouts/Layout';
 import Sidebar from '../../../components/layouts/Sidebar';
 import TrendingWidget from '../../../components/common/TrendingWidget';
 import Badge from '../../../components/common/Badge';
-import {
-  FEATURED_ARTICLE,
-  LATEST_ARTICLES,
-  TRENDING_ARTICLES
-} from '../../../constants/mockData';
 import { languages } from '../../../i18n/settings';
+import { db } from '../../../db';
+import { debates } from '../../../db/schema';
+import { desc, eq } from 'drizzle-orm';
 
 // Types - Updated to match mockData.ts exactly
 interface Article {
   id: number;
   title: string;
   slug: string;
-  href: string;
   excerpt: string;
   main_image_url: string;
   author_name: string;
@@ -37,17 +34,11 @@ interface Article {
   content: string[]; // Added content array
 }
 
-export default function ArticlePage({ article }: { article: Article }) {
+export default function ArticlePage({ article, trendingArticles }: { article: Article, trendingArticles: Article[] }) {
   const router = useRouter();
   // Safe language detection: try i18n first, then router, then fallback
   const { t, i18n } = useTranslation(['common', 'articles']);
   const currentLanguage = i18n.language || (router.query.lng as string) || 'en';
-
-  // Translate trending articles for sidebar
-  const translatedTrendingArticles = TRENDING_ARTICLES.map((item, index) => ({
-    ...item,
-    title: t(`articles:trending_articles.${index}.title`, item.title),
-  }));
 
   // Handling for Fallback state
   if (router.isFallback) {
@@ -220,7 +211,7 @@ export default function ArticlePage({ article }: { article: Article }) {
 
       {/* === SIDEBAR === */}
       <Sidebar>
-        <TrendingWidget articles={translatedTrendingArticles} lng={currentLanguage} />
+        <TrendingWidget articles={trendingArticles} lng={currentLanguage} />
         
         {/* Advertisement Placeholder */}
         <div className="bg-slate-100 aspect-square w-full rounded-sm flex flex-col items-center justify-center text-slate-400 text-sm border-2 border-dashed border-slate-300">
@@ -235,13 +226,8 @@ export default function ArticlePage({ article }: { article: Article }) {
 }
 
 export const getStaticPaths: GetStaticPaths = async () => {
-  const allArticles = [
-    FEATURED_ARTICLE,
-    ...LATEST_ARTICLES,
-    ...TRENDING_ARTICLES
-  ];
+  const allArticles = await db.select({ slug: debates.slug }).from(debates).execute();
   
-  // Ensure languages are defined, otherwise default to ['en']
   const langs = languages || ['en'];
 
   const paths = langs.flatMap(lng => 
@@ -254,25 +240,51 @@ export const getStaticPaths: GetStaticPaths = async () => {
 };
 
 export const getStaticProps: GetStaticProps = async ({ params, locale }) => {
-  const allArticles = [
-    FEATURED_ARTICLE,
-    ...LATEST_ARTICLES,
-    ...TRENDING_ARTICLES
-  ];
-  
-  const article = allArticles.find(a => a.slug === params?.slug);
+  const slug = params?.slug as string;
+  const articleData = await db.query.debates.findFirst({
+    where: eq(debates.slug, slug),
+  });
 
-  if (!article) {
+  if (!articleData) {
     return {
       notFound: true,
     };
   }
 
+  const article = {
+    ...articleData,
+    publishedAt: articleData.publishedAt ? articleData.publishedAt.toISOString() : null,
+    createdAt: articleData.createdAt ? articleData.createdAt.toISOString() : null,
+    category: {
+      name: articleData.topic,
+      href: `/category/${articleData.topic.toLowerCase()}`,
+    },
+    content: articleData.summary ? articleData.summary.split('\n') : [],
+    excerpt: articleData.summary ? articleData.summary.slice(0, 150) : '',
+  };
+
+  const trendingArticlesData = await db.select().from(debates).orderBy(desc(debates.publishedAt)).limit(5).execute();
+
+  const trendingArticles = trendingArticlesData.map(a => ({
+      ...a,
+      publishedAt: a.publishedAt ? a.publishedAt.toISOString() : null,
+      createdAt: a.createdAt ? a.createdAt.toISOString() : null,
+      category: {
+          name: a.topic,
+          href: `/category/${a.topic.toLowerCase()}`
+      },
+      content: a.summary ? a.summary.split('\n') : [],
+      excerpt: a.summary ? a.summary.slice(0, 150) : '',
+  }));
+
+
   return {
     props: {
       article,
+      trendingArticles,
       lng: params?.lng || 'en',
       ...(await serverSideTranslations(params?.lng as string || locale || 'en', ['common', 'articles'])),
     },
+    revalidate: 60,
   };
 };

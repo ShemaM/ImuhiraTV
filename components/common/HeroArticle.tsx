@@ -45,7 +45,7 @@ export default function HeroArticle({ article, lng }: HeroArticleProps) {
         {/* 2. TEXT COLUMN */}
         <div className="lg:col-span-4 flex flex-col justify-center">
           <div className="mb-4">
-             <Badge label={article.category.name} />
+             <Badge label={article.category?.name || 'News'} />
           </div>
 
           <Link href={validUrl} className="group block mb-4">

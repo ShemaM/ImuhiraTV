@@ -6,6 +6,7 @@ export const NAV_LINKS = [
   { name: "History", href: "/category/history" },
   { name: "Culture", href: "/category/culture" },
   { name: "Conflict", href: "/category/conflict" },
+  { name: "Politics", href: "/category/politics" },
   { name: "Stories", href: "/category/stories" },
 ];
 

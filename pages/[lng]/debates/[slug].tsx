@@ -42,8 +42,14 @@ interface DebateProps {
 
 export default function DebatePage({ debate }: DebateProps) {
   const router = useRouter();
-  const { t, i18n } = useTranslation(['common']);
+  const { t, i18n } = useTranslation(['common', 'articles']);
   const currentLanguage = i18n.language || (router.query.lng as string) || 'en';
+
+  // Translate trending articles for sidebar
+  const translatedTrendingArticles = TRENDING_ARTICLES.map((item, index) => ({
+    ...item,
+    title: t(`articles:trending_articles.${index}.title`, item.title),
+  }));
 
   if (router.isFallback) {
     return <div className="p-12 text-center">Loading debate...</div>;
@@ -129,38 +135,39 @@ export default function DebatePage({ debate }: DebateProps) {
             </div>
           </header>
 
-          {/* Main Image */}
-          {debate.mainImageUrl && (
-            <figure className="mb-10 relative h-75 md:h-112.5 w-full bg-slate-100 rounded-sm overflow-hidden shadow-sm">
-              <Image 
-                src={debate.mainImageUrl} 
-                alt={debate.title}
-                fill
-                className="object-cover"
-                unoptimized
-              />
-            </figure>
-          )}
+          {/* Main Image - Use YouTube thumbnail if available */}
+          <figure className="mb-10 relative h-75 md:h-112.5 w-full bg-slate-100 rounded-sm overflow-hidden shadow-sm">
+            <Image 
+              src={debate.youtubeVideoId 
+                ? `https://img.youtube.com/vi/${debate.youtubeVideoId}/maxresdefault.jpg`
+                : debate.mainImageUrl || '/placeholder-image.jpg'} 
+              alt={debate.title}
+              fill
+              className="object-cover"
+              unoptimized
+            />
+          </figure>
 
-          {/* YouTube Video */}
+          {/* Watch on YouTube Button */}
           {debate.youtubeVideoId && (
             <div className="my-8">
               <h3 className="text-sm font-bold uppercase tracking-widest text-slate-500 mb-4">
-                📺 Watch the Interview
+                📺 {t('watchOnYouTube')}
               </h3>
               {debate.youtubeVideoTitle && (
                 <p className="text-slate-600 mb-3 italic">{debate.youtubeVideoTitle}</p>
               )}
-              <div className="aspect-video">
-                <iframe
-                  src={`https://www.youtube.com/embed/${debate.youtubeVideoId}`}
-                  title="YouTube video player"
-                  frameBorder="0"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                  className="w-full h-full rounded-lg"
-                ></iframe>
-              </div>
+              <a
+                href={`https://www.youtube.com/watch?v=${debate.youtubeVideoId}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-3 bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-bold transition-colors shadow-md"
+              >
+                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                </svg>
+                {t('watchOnYouTube')}
+              </a>
             </div>
           )}
 
@@ -213,13 +220,18 @@ export default function DebatePage({ debate }: DebateProps) {
             </div>
           </div>
 
-          {/* Verdict Section */}
-          <div className="my-12 bg-slate-800 rounded-lg p-8 text-white">
-            <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-              <span>⚖️</span> The Verdict
+          {/* Your Verdict Section - Invite Readers to Comment */}
+          <div className="my-12 bg-slate-100 rounded-lg p-8 border-2 border-slate-300">
+            <h2 className="text-xl font-bold mb-4 flex items-center gap-2 text-slate-800">
+              <span>🗳️</span> {t('Your Verdict')}
             </h2>
-            <div className="prose prose-invert max-w-none">
-              <p className="text-slate-200 leading-relaxed whitespace-pre-wrap">{debate.verdict}</p>
+            <div className="prose max-w-none">
+              <p className="text-slate-600 leading-relaxed mb-4">
+                {t('We present both perspectives without taking sides. After reviewing the key points from both Idubu and Akagara factions, what is your verdict?')}
+              </p>
+              <p className="text-slate-700 font-medium">
+                {t('Share your thoughts in the comments section below.')}
+              </p>
             </div>
           </div>
 
@@ -252,7 +264,7 @@ export default function DebatePage({ debate }: DebateProps) {
 
         {/* === SIDEBAR === */}
         <Sidebar>
-          <TrendingWidget articles={TRENDING_ARTICLES} lng={currentLanguage} />
+          <TrendingWidget articles={translatedTrendingArticles} lng={currentLanguage} />
           
           {/* Advertisement Placeholder */}
           <div className="bg-slate-100 aspect-square w-full rounded-sm flex flex-col items-center justify-center text-slate-400 text-sm border-2 border-dashed border-slate-300">
@@ -282,7 +294,7 @@ export const getServerSideProps: GetServerSideProps = async ({ params, locale })
         props: {
           debate: null,
           lng,
-          ...(await serverSideTranslations(lng, ['common'])),
+          ...(await serverSideTranslations(lng, ['common', 'articles'])),
         },
       };
     }
@@ -319,7 +331,7 @@ export const getServerSideProps: GetServerSideProps = async ({ params, locale })
       props: {
         debate: serializedDebate,
         lng,
-        ...(await serverSideTranslations(lng, ['common'])),
+        ...(await serverSideTranslations(lng, ['common', 'articles'])),
       },
     };
   } catch (error) {
@@ -328,7 +340,7 @@ export const getServerSideProps: GetServerSideProps = async ({ params, locale })
       props: {
         debate: null,
         lng,
-        ...(await serverSideTranslations(lng, ['common'])),
+        ...(await serverSideTranslations(lng, ['common', 'articles'])),
       },
     };
   }

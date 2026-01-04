@@ -37,6 +37,12 @@ export default function ArticlePage({ article }: { article: Article }) {
   const { t, i18n } = useTranslation(['common', 'articles']);
   const currentLanguage = i18n.language || (router.query.lng as string) || 'en';
 
+  // Translate trending articles for sidebar
+  const translatedTrendingArticles = TRENDING_ARTICLES.map((item, index) => ({
+    ...item,
+    title: t(`articles:trending_articles.${index}.title`, item.title),
+  }));
+
   // Handling for Fallback state or if article is somehow missing
   if (router.isFallback) {
     return <div className="p-12 text-center">Loading article...</div>;
@@ -103,11 +109,13 @@ export default function ArticlePage({ article }: { article: Article }) {
           </div>
         </header>
 
-        {/* Main Image */}
+        {/* Main Image - Use YouTube thumbnail if available */}
         <figure className="mb-10 relative h-75 md:h-112.5 w-full bg-slate-100 rounded-sm overflow-hidden shadow-sm">
           <Image 
-            src={article.main_image_url || '/placeholder-image.jpg'} 
-            alt={article.title}
+            src={article.youtube_video_id 
+              ? `https://img.youtube.com/vi/${article.youtube_video_id}/maxresdefault.jpg`
+              : article.main_image_url || '/placeholder-image.jpg'} 
+            alt={t(`articles:${article.slug}.title`, { defaultValue: article.title })}
             fill
             className="object-cover"
             unoptimized
@@ -117,19 +125,20 @@ export default function ArticlePage({ article }: { article: Article }) {
           </figcaption>
         </figure>
 
-        {/* YouTube Video */}
+        {/* Watch on YouTube Button */}
         {article.youtube_video_id && (
           <div className="my-8">
-            <div className="aspect-w-16 aspect-h-9">
-              <iframe
-                src={`https://www.youtube.com/embed/${article.youtube_video_id}`}
-                title="YouTube video player"
-                frameBorder="0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-                className="w-full h-full"
-              ></iframe>
-            </div>
+            <a
+              href={`https://www.youtube.com/watch?v=${article.youtube_video_id}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-3 bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-bold transition-colors shadow-md"
+            >
+              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+              </svg>
+              {t('watchOnYouTube')}
+            </a>
           </div>
         )}
 
@@ -179,8 +188,8 @@ export default function ArticlePage({ article }: { article: Article }) {
 
       {/* === SIDEBAR === */}
       <Sidebar>
-        {/* FIX: Pass currentLanguage to widget so links work */}
-        <TrendingWidget articles={TRENDING_ARTICLES} lng={currentLanguage} />
+        {/* Pass translated articles to the widget */}
+        <TrendingWidget articles={translatedTrendingArticles} lng={currentLanguage} />
         
         {/* Advertisement Placeholder */}
         <div className="bg-slate-100 aspect-square w-full rounded-sm flex flex-col items-center justify-center text-slate-400 text-sm border-2 border-dashed border-slate-300">

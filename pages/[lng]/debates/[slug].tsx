@@ -13,11 +13,13 @@ import { TRENDING_ARTICLES } from '../../../constants/mockData';
 import { db, debates, debateArguments } from '../../../db';
 import { eq } from 'drizzle-orm';
 
+// Types
 interface Argument {
   id: number;
   speakerName: string | null;
   argument: string;
   orderIndex: number;
+  createdAt?: string | null; // Added for type safety with serialized data
 }
 
 interface DebateProps {
@@ -27,7 +29,7 @@ interface DebateProps {
     slug: string;
     topic: string;
     summary: string | null;
-    verdict: string;
+    verdict: string; // This is the content for our new section
     youtubeVideoId: string | null;
     youtubeVideoTitle: string | null;
     mainImageUrl: string | null;
@@ -109,10 +111,17 @@ export default function DebatePage({ debate }: DebateProps) {
               </p>
             )}
 
-            {/* Topic/Question */}
-            <div className="bg-slate-100 rounded-lg p-6 mb-8">
-              <h2 className="text-sm font-bold uppercase tracking-widest text-slate-500 mb-2">The Question</h2>
-              <p className="text-xl font-serif text-slate-800">{debate.topic}</p>
+            {/* THE MOTION: Clearly stated topic */}
+            <div className="bg-slate-900 rounded-lg p-8 mb-8 shadow-lg relative overflow-hidden">
+               {/* Decorative background element */}
+               <div className="absolute top-0 right-0 -mr-8 -mt-8 w-32 h-32 bg-white/5 rounded-full blur-2xl"></div>
+               
+               <h2 className="text-xs font-bold uppercase tracking-widest text-red-500 mb-3 flex items-center gap-2">
+                 <span>📢</span> The Motion
+               </h2>
+               <p className="text-2xl font-serif font-bold text-white leading-snug">
+                 &ldquo;{debate.topic}&rdquo;
+               </p>
             </div>
 
             {/* Author Metadata Bar */}
@@ -123,7 +132,7 @@ export default function DebatePage({ debate }: DebateProps) {
                     {debate.authorName || 'Imuhira Staff'}
                   </span>
                   <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
-                    Editor
+                    Moderator
                   </span>
                 </div>
               </div>
@@ -135,84 +144,100 @@ export default function DebatePage({ debate }: DebateProps) {
             </div>
           </header>
 
-          {/* Main Image - Use YouTube thumbnail if available */}
-          <figure className="mb-10 relative h-75 md:h-112.5 w-full bg-slate-100 rounded-sm overflow-hidden shadow-sm">
+          {/* Main Image / Video Thumbnail */}
+          <figure className="mb-10 relative h-75 md:h-112.5 w-full bg-slate-100 rounded-sm overflow-hidden shadow-sm group">
             <Image 
               src={debate.youtubeVideoId 
                 ? `https://img.youtube.com/vi/${debate.youtubeVideoId}/maxresdefault.jpg`
                 : debate.mainImageUrl || '/placeholder-image.jpg'} 
               alt={debate.title}
               fill
-              className="object-cover"
+              className="object-cover group-hover:scale-105 transition-transform duration-700"
               unoptimized
             />
+             {/* Play Icon Overlay */}
+             {debate.youtubeVideoId && (
+                <div className="absolute inset-0 bg-black/20 flex items-center justify-center group-hover:bg-black/10 transition-colors pointer-events-none">
+                  <div className="w-16 h-16 bg-red-600/90 rounded-full flex items-center justify-center shadow-lg backdrop-blur-sm">
+                      <svg className="w-8 h-8 text-white ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                  </div>
+                </div>
+              )}
           </figure>
 
           {/* Watch on YouTube Button */}
           {debate.youtubeVideoId && (
-            <div className="my-8">
-              <h3 className="text-sm font-bold uppercase tracking-widest text-slate-500 mb-4">
-                📺 {t('watchOnYouTube')}
-              </h3>
-              {debate.youtubeVideoTitle && (
-                <p className="text-slate-600 mb-3 italic">{debate.youtubeVideoTitle}</p>
-              )}
+            <div className="my-8 flex justify-center">
               <a
                 href={`https://www.youtube.com/watch?v=${debate.youtubeVideoId}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-3 bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-bold transition-colors shadow-md"
+                className="inline-flex items-center gap-3 bg-[#FF0000] hover:bg-[#D00000] text-white px-8 py-4 rounded-full font-bold transition-all shadow-md hover:shadow-lg transform hover:-translate-y-1"
               >
                 <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
                 </svg>
-                {t('watchOnYouTube')}
+                {t('Watch Full Debate')}
               </a>
             </div>
           )}
 
           {/* Arguments Section */}
-          <div className="my-12 space-y-8">
-            <h2 className="text-2xl font-serif font-bold text-slate-900 border-b-2 border-slate-200 pb-4">
-              ⚖️ The Debate
-            </h2>
+          <div className="my-16 space-y-10">
+            <div className="text-center mb-8">
+               <h2 className="text-3xl font-serif font-black text-slate-900 inline-block border-b-4 border-red-700 pb-2">
+                 Key Arguments
+               </h2>
+               <p className="text-slate-500 mt-4 max-w-lg mx-auto">
+                 We have summarized the core points raised by both factions regarding the motion.
+               </p>
+            </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 relative">
+              {/* Vertical Divider (Hidden on mobile) */}
+              <div className="hidden md:block absolute left-1/2 top-0 bottom-0 w-px bg-slate-200 -ml-px"></div>
+
               {/* Idubu Arguments */}
-              <div className="bg-blue-50 rounded-lg p-6 border-l-4 border-blue-600">
-                <div className="mb-4">
-                  <h3 className="text-lg font-bold text-blue-800">Idubu Perspective</h3>
-                  <p className="text-sm text-blue-600">Pro-Twirwaneho</p>
+              <div className="flex flex-col gap-4">
+                <div className="bg-blue-600 text-white p-4 rounded-t-lg text-center shadow-sm">
+                  <h3 className="text-xl font-bold uppercase tracking-wider">Idubu</h3>
+                  <p className="text-blue-100 text-xs font-bold mt-1">PRO-TWIRWANEHO</p>
                 </div>
                 <div className="space-y-4">
                   {debate.arguments.idubu.map((arg, index) => (
-                    <div key={arg.id || index} className="bg-white rounded-lg p-4">
+                    <div key={arg.id || index} className="bg-white border-l-4 border-blue-600 rounded-r-lg shadow-xs p-5 hover:shadow-md transition-shadow">
                       {arg.speakerName && (
-                        <p className="text-xs font-bold uppercase tracking-wider text-blue-700 mb-2">
-                          {arg.speakerName}
-                        </p>
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className="w-2 h-2 rounded-full bg-blue-600"></div>
+                          <p className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                            {arg.speakerName}
+                          </p>
+                        </div>
                       )}
-                      <p className="text-slate-700 leading-relaxed">&ldquo;{arg.argument}&rdquo;</p>
+                      <p className="text-slate-800 leading-relaxed font-serif">&ldquo;{arg.argument}&rdquo;</p>
                     </div>
                   ))}
                 </div>
               </div>
 
               {/* Akagara Arguments */}
-              <div className="bg-orange-50 rounded-lg p-6 border-l-4 border-orange-600">
-                <div className="mb-4">
-                  <h3 className="text-lg font-bold text-orange-800">Akagara Perspective</h3>
-                  <p className="text-sm text-orange-600">Pro-Government/FARDC</p>
+              <div className="flex flex-col gap-4">
+                <div className="bg-orange-600 text-white p-4 rounded-t-lg text-center shadow-sm">
+                  <h3 className="text-xl font-bold uppercase tracking-wider">Akagara</h3>
+                  <p className="text-orange-100 text-xs font-bold mt-1">PRO-GOVERNMENT</p>
                 </div>
                 <div className="space-y-4">
                   {debate.arguments.akagara.map((arg, index) => (
-                    <div key={arg.id || index} className="bg-white rounded-lg p-4">
+                    <div key={arg.id || index} className="bg-white border-l-4 border-orange-600 rounded-r-lg shadow-xs p-5 hover:shadow-md transition-shadow">
                       {arg.speakerName && (
-                        <p className="text-xs font-bold uppercase tracking-wider text-orange-700 mb-2">
-                          {arg.speakerName}
-                        </p>
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className="w-2 h-2 rounded-full bg-orange-600"></div>
+                          <p className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                            {arg.speakerName}
+                          </p>
+                        </div>
                       )}
-                      <p className="text-slate-700 leading-relaxed">&ldquo;{arg.argument}&rdquo;</p>
+                      <p className="text-slate-800 leading-relaxed font-serif">&ldquo;{arg.argument}&rdquo;</p>
                     </div>
                   ))}
                 </div>
@@ -220,36 +245,41 @@ export default function DebatePage({ debate }: DebateProps) {
             </div>
           </div>
 
-          {/* Your Verdict Section - Invite Readers to Comment */}
-          <div className="my-12 bg-slate-100 rounded-lg p-8 border-2 border-slate-300">
-            <h2 className="text-xl font-bold mb-4 flex items-center gap-2 text-slate-800">
-              <span>🗳️</span> {t('Your Verdict')}
+          {/* === THE VERDICT / CONCLUSION SECTION === */}
+          {debate.verdict && (
+             <div className="my-16 bg-slate-50 border-y-4 border-slate-900 py-10 px-6 md:px-12">
+               <h2 className="text-2xl font-black font-serif text-slate-900 mb-6 flex items-center gap-3">
+                 <span>⚖️</span> The Verdict
+               </h2>
+               <div className="prose prose-lg prose-slate max-w-none font-serif">
+                 {/* This displays the editorial conclusion/winner from the DB */}
+                 <p>{debate.verdict}</p>
+               </div>
+               
+               <div className="mt-6 flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-400">
+                 <span>Analysis by Imuhira Political Desk</span>
+               </div>
+             </div>
+          )}
+
+          {/* User Engagement Verdict */}
+          <div className="my-12 bg-white rounded-lg p-8 border border-slate-200 shadow-sm">
+            <h2 className="text-lg font-bold mb-4 text-slate-800">
+              What do you think?
             </h2>
-            <div className="prose max-w-none">
-              <p className="text-slate-600 leading-relaxed mb-4">
-                {t('We present both perspectives without taking sides. After reviewing the key points from both Idubu and Akagara factions, what is your verdict?')}
-              </p>
-              <p className="text-slate-700 font-medium">
-                {t('Share your thoughts in the comments section below.')}
+            <div className="prose max-w-none mb-6">
+              <p className="text-slate-600 text-sm">
+                {t('We have presented the arguments from both sides. Who do you think made the stronger case? Join the discussion in the comments.')}
               </p>
             </div>
+            {/* Placeholder for Comment System */}
+            <button className="text-sm font-bold text-red-700 border border-red-700 px-6 py-2 rounded-sm hover:bg-red-700 hover:text-white transition-colors">
+              Post a Comment
+            </button>
           </div>
 
           {/* Neutral Stance Reminder */}
-          <div className="mt-12 pt-8 border-t border-slate-200 bg-slate-50 rounded-lg p-6">
-            <h4 className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-3">📌 Our Editorial Stance</h4>
-            <p className="text-sm text-slate-600 leading-relaxed">
-              Imuhira is committed to providing a platform for all voices. This debate presents both 
-              Idubu and Akagara perspectives fairly. We encourage readers to watch the full interview 
-              and draw their own conclusions.{' '}
-              <Link href={`/${currentLanguage}/our-stance`} className="text-red-600 hover:underline">
-                Read more about our stance →
-              </Link>
-            </p>
-          </div>
-
-          {/* Tags / Footer */}
-          <div className="mt-8 pt-8 border-t border-slate-200">
+          <div className="mt-12 pt-8 border-t border-slate-200">
             <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Filed Under</h4>
             <div className="flex flex-wrap gap-2">
               {['Debate', 'Banyamulenge', 'South Kivu', 'Twirwaneho', 'FARDC'].map((tag, i) => (
@@ -266,7 +296,6 @@ export default function DebatePage({ debate }: DebateProps) {
         <Sidebar>
           <TrendingWidget articles={translatedTrendingArticles} lng={currentLanguage} />
           
-          {/* Advertisement Placeholder */}
           <div className="bg-slate-100 aspect-square w-full rounded-sm flex flex-col items-center justify-center text-slate-400 text-sm border-2 border-dashed border-slate-300">
              <span className="font-bold">{t('Advertisement')}</span>
              <span className="text-xs">{t('Support Independent News')}</span>

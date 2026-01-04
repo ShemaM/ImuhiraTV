@@ -338,7 +338,6 @@ export const getServerSideProps: GetServerSideProps = async ({ params, locale })
     const serializedDebate = {
       ...debate,
       createdAt: debate.createdAt?.toISOString() || null,
-      updatedAt: debate.updatedAt?.toISOString() || null,
       publishedAt: debate.publishedAt?.toISOString() || null,
       arguments: {
         idubu: args

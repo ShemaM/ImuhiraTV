@@ -1,6 +1,8 @@
 // constants/mockData.ts
 
 export const SITE_NAME = "Imuhira TV";
+export const SITE_DESCRIPTION = "Imuhira TV is a news platform dedicated to providing accurate and timely information about the Banyamulenge community in the Democratic Republic of Congo. Our mission is to amplify the voices of the Banyamulenge people, share their stories, and shed light on the challenges they face.";
+export const SITE_LOGO = "/images/logo.jpg";
 
 export const NAV_LINKS = [
   { name: "History", href: "/category/history" },
@@ -74,11 +76,7 @@ export const TRENDING_ARTICLES = [
     author_name: "Imuhira Staff",
     published_at: "Jan 4, 2026",
     youtube_video_id: "l_WEF_EPcJs",
-    content: [
-        "Darkness has fallen over Mulenge. The images coming out of the region show a humanitarian catastrophe that the world has largely ignored.",
-        "Families have been uprooted, livestock stolen, and villages burned. This report focuses on the personal stories of those living in makeshift camps, lacking food, medicine, and shelter.",
-        "We call upon the international community to witness the reality of 'Icuraburindi'—the utter darkness facing these displaced communities."
-    ]
+    content: []
   },
   {
     id: 5,

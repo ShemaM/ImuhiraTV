@@ -1,155 +1,99 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { db, debates, debateArguments } from '../../../db';
-import { eq } from 'drizzle-orm';
-import { filterValidArguments, transformArgumentsForInsert, formatErrorResponse } from '../../../lib/debate-utils';
+import { eq, asc } from 'drizzle-orm';
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { id } = req.query;
-  const debateId = parseInt(id as string, 10);
+  const debateId = Number(id);
 
-  if (isNaN(debateId)) {
-    return res.status(400).json({ error: 'Invalid debate ID' });
-  }
+  if (isNaN(debateId)) return res.status(400).json({ error: 'Invalid ID' });
 
-  if (req.method === 'GET') {
+  // DELETE
+  if (req.method === 'DELETE') {
     try {
-      const [debate] = await db
-        .select()
-        .from(debates)
-        .where(eq(debates.id, debateId));
-
-      if (!debate) {
-        return res.status(404).json({ error: 'Debate not found' });
-      }
-
-      const args = await db
-        .select()
-        .from(debateArguments)
-        .where(eq(debateArguments.debateId, debateId));
-
-      return res.status(200).json({
-        ...debate,
-        arguments: {
-          idubu: args.filter(a => a.faction === 'idubu'),
-          akagara: args.filter(a => a.faction === 'akagara'),
-        },
-      });
-    } catch (error) {
-      console.error('Error fetching debate:', error);
-      return res.status(500).json(formatErrorResponse(error, 'Failed to fetch debate'));
+      await db.delete(debateArguments).where(eq(debateArguments.debateId, debateId));
+      await db.delete(debates).where(eq(debates.id, debateId));
+      return res.status(200).json({ message: 'Debate deleted' });
+    } catch {
+      return res.status(500).json({ error: 'Failed to delete debate' });
     }
   }
 
+  // GET (For Edit Page)
+  if (req.method === 'GET') {
+    try {
+      const result = await db.select().from(debates).where(eq(debates.id, debateId));
+      if (result.length === 0) return res.status(404).json({ error: 'Debate not found' });
+      
+      // Fetch arguments ordered by index
+      const args = await db
+        .select()
+        .from(debateArguments)
+        .where(eq(debateArguments.debateId, debateId))
+        .orderBy(asc(debateArguments.orderIndex));
+
+      // 🟢 Return data mapped to our new schema
+      return res.status(200).json({
+        ...result[0],
+        arguments: {
+          faction1: args.filter(a => a.faction === 'faction1'),
+          faction2: args.filter(a => a.faction === 'faction2'),
+        }
+      });
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ error: 'Failed to fetch debate' });
+    }
+  }
+
+  // PUT (Update Debate)
   if (req.method === 'PUT') {
     try {
       const { 
-        title, 
-        slug, 
-        topic, 
-        summary, 
-        verdict, 
-        youtubeVideoId, 
-        youtubeVideoTitle,
-        mainImageUrl,
-        authorName,
-        status,
-        idubuArguments,
-        akagaraArguments 
+        title, slug, topic, summary, 
+        faction1Label, faction2Label,
+        youtubeVideoId, youtubeVideoTitle, mainImageUrl, 
+        authorName, status, 
+        faction1Arguments, faction2Arguments 
       } = req.body;
 
-      // First, get the existing debate to check current publishedAt
-      const [existingDebate] = await db
-        .select()
-        .from(debates)
-        .where(eq(debates.id, debateId));
+      await db.transaction(async (tx) => {
+        // 1. Update Debate Fields
+        await tx.update(debates)
+          .set({
+            title, slug, topic, summary,
+            faction1Label, faction2Label,
+            youtubeVideoId, youtubeVideoTitle, mainImageUrl,
+            authorName, status,
+            publishedAt: status === 'published' ? new Date() : null, // Reset date if republishing
+          })
+          .where(eq(debates.id, debateId));
 
-      if (!existingDebate) {
-        return res.status(404).json({ error: 'Debate not found' });
-      }
+        // 2. Replace Arguments (Delete all & Re-insert)
+        // This is the safest way to handle reordering and edits
+        await tx.delete(debateArguments).where(eq(debateArguments.debateId, debateId));
 
-      // Only set publishedAt if it's being published for the first time
-      const publishedAt = status === 'published' 
-        ? (existingDebate.publishedAt || new Date())
-        : null;
+        if (faction1Arguments?.length) {
+          await tx.insert(debateArguments).values(
+            faction1Arguments.map((arg: string, index: number) => ({
+              debateId, faction: 'faction1', argument: arg, orderIndex: index
+            }))
+          );
+        }
 
-      // Update the debate
-      const [updatedDebate] = await db
-        .update(debates)
-        .set({
-          title,
-          slug,
-          topic,
-          summary,
-          verdict,
-          youtubeVideoId,
-          youtubeVideoTitle,
-          mainImageUrl,
-          authorName,
-          status,
-          updatedAt: new Date(),
-          publishedAt,
-        })
-        .where(eq(debates.id, debateId))
-        .returning();
-
-      // Delete existing arguments and insert new ones
-      await db.delete(debateArguments).where(eq(debateArguments.debateId, debateId));
-
-      // Insert updated Idubu arguments (filter out empty arguments)
-      const validIdubuArgs = filterValidArguments(idubuArguments);
-      if (validIdubuArgs.length > 0) {
-        await db.insert(debateArguments).values(
-          transformArgumentsForInsert(validIdubuArgs, debateId, 'idubu')
-        );
-      }
-
-      // Insert updated Akagara arguments (filter out empty arguments)
-      const validAkagaraArgs = filterValidArguments(akagaraArguments);
-      if (validAkagaraArgs.length > 0) {
-        await db.insert(debateArguments).values(
-          transformArgumentsForInsert(validAkagaraArgs, debateId, 'akagara')
-        );
-      }
-
-      // Fetch updated arguments
-      const args = await db
-        .select()
-        .from(debateArguments)
-        .where(eq(debateArguments.debateId, debateId));
-
-      return res.status(200).json({
-        ...updatedDebate,
-        arguments: {
-          idubu: args.filter(a => a.faction === 'idubu'),
-          akagara: args.filter(a => a.faction === 'akagara'),
-        },
+        if (faction2Arguments?.length) {
+          await tx.insert(debateArguments).values(
+            faction2Arguments.map((arg: string, index: number) => ({
+              debateId, faction: 'faction2', argument: arg, orderIndex: index
+            }))
+          );
+        }
       });
+
+      return res.status(200).json({ message: 'Updated successfully' });
     } catch (error) {
-      console.error('Error updating debate:', error);
-      return res.status(500).json(formatErrorResponse(error, 'Failed to update debate'));
+      console.error(error);
+      return res.status(500).json({ error: 'Failed to update debate' });
     }
   }
-
-  if (req.method === 'DELETE') {
-    try {
-      const [deletedDebate] = await db
-        .delete(debates)
-        .where(eq(debates.id, debateId))
-        .returning();
-
-      if (!deletedDebate) {
-        return res.status(404).json({ error: 'Debate not found' });
-      }
-
-      return res.status(200).json({ message: 'Debate deleted successfully' });
-    } catch (error) {
-      console.error('Error deleting debate:', error);
-      return res.status(500).json(formatErrorResponse(error, 'Failed to delete debate'));
-    }
-  }
-
-  return res.status(405).json({ error: 'Method not allowed' });
 }

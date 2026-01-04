@@ -2,9 +2,10 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useAuth } from '../../context/AuthContext';
 import { Bars3Icon, XMarkIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
-import { SITE_NAME, NAV_LINKS } from '../../constants/mockData';
+import { SITE_NAME, SITE_LOGO, NAV_LINKS } from '../../constants/mockData';
 import { usePathname } from 'next/navigation';
 
 export default function Navbar() {
@@ -33,7 +34,10 @@ export default function Navbar() {
             </button>
             <Link href={`/${lng}`} className="shrink-0 flex items-center ml-2 md:ml-0">
               <span className="font-serif text-xl md:text-2xl font-black tracking-tight text-gray-900 hover:text-red-700">
-                {SITE_NAME}
+                
+                {SITE_LOGO && (
+                  <Image src={SITE_LOGO} alt={`${SITE_NAME} Logo`} width={32} height={32} className="inline-block h-8 w-auto ml-2" />
+                )}
               </span>
             </Link>
             <div className="hidden md:ml-8 md:flex md:space-x-6">

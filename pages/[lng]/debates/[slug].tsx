@@ -1,3 +1,5 @@
+// pages/[lng]/debates/[slug].tsx (or wherever this file is located)
+
 import { GetServerSideProps } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -9,37 +11,43 @@ import Layout from '../../../components/layouts/Layout';
 import Sidebar from '../../../components/layouts/Sidebar';
 import TrendingWidget from '../../../components/common/TrendingWidget';
 import Badge from '../../../components/common/Badge';
-import { db, debates, debateArguments } from '../../../db';
+import { db, debates } from '../../../db';
 import { eq, desc } from 'drizzle-orm';
 
 // Types
-interface Argument {
-  id: number;
-  speakerName: string | null;
-  argument: string;
-  orderIndex: number;
-  createdAt?: string | null; // Added for type safety with serialized data
+interface TrendingArticle {
+  id: number | string;
+  title: string;
+  slug: string;
+  category: {
+    name: string;
+    href: string;
+  };
+  content: string[];
+  excerpt: string;
+  publishedAt: string | null;
+  createdAt: string | null;
 }
 
 interface DebateProps {
   debate: {
-    id: number;
+    id: number | string;
     title: string;
     slug: string;
-    topic: string;
+    category: string; // Changed from 'topic'
     summary: string | null;
-    verdict: string; // This is the content for our new section
     youtubeVideoId: string | null;
-    youtubeVideoTitle: string | null;
     mainImageUrl: string | null;
     authorName: string | null;
     publishedAt: string | null;
-    arguments: {
-      idubu: Argument[];
-      akagara: Argument[];
-    };
+    
+    // 🟢 New Merged Fields
+    proposerName: string;
+    proposerArguments: string;
+    opposerName: string;
+    opposerArguments: string;
   } | null;
-  trendingArticles: any[];
+  trendingArticles: TrendingArticle[];
 }
 
 export default function DebatePage({ debate, trendingArticles }: DebateProps) {
@@ -81,21 +89,21 @@ export default function DebatePage({ debate, trendingArticles }: DebateProps) {
       <div className="flex flex-col lg:flex-row gap-12">
         
         {/* === MAIN COLUMN === */}
-        <article className="w-full lg:w-2/3">
+        {/* CSS FIX: min-w-0 prevents overflow */}
+        <article className="w-full lg:w-2/3 min-w-0">
           
-          {/* Breadcrumb Navigation */}
           <nav className="flex items-center text-xs text-slate-400 font-bold uppercase tracking-widest mb-8">
             <Link href={`/${currentLanguage}`} className="hover:text-red-700 transition-colors">{t('Home')}</Link>
             <span className="mx-2">/</span>
             <span className="text-red-700">Debate</span>
           </nav>
 
-          {/* Debate Header */}
           <header className="mb-8">
             <div className="mb-4">
               <Badge label="Debate" />
             </div>
-            <h1 className="text-3xl md:text-5xl font-serif font-black text-slate-900 leading-tight mb-6">
+            {/* CSS FIX: break-words */}
+            <h1 className="text-3xl md:text-5xl font-serif font-black text-slate-900 leading-tight mb-6 wrap-break-word">
               {debate.title}
             </h1>
             
@@ -105,20 +113,18 @@ export default function DebatePage({ debate, trendingArticles }: DebateProps) {
               </p>
             )}
 
-            {/* THE MOTION: Clearly stated topic */}
+            {/* THE MOTION */}
             <div className="bg-slate-900 rounded-lg p-8 mb-8 shadow-lg relative overflow-hidden">
-               {/* Decorative background element */}
                <div className="absolute top-0 right-0 -mr-8 -mt-8 w-32 h-32 bg-white/5 rounded-full blur-2xl"></div>
                
                <h2 className="text-xs font-bold uppercase tracking-widest text-red-500 mb-3 flex items-center gap-2">
                  <span>📢</span> The Motion
                </h2>
-               <p className="text-2xl font-serif font-bold text-white leading-snug">
-                 &ldquo;{debate.topic}&rdquo;
+               <p className="text-2xl font-serif font-bold text-white leading-snug wrap-break-word">
+                 &ldquo;{debate.category}&rdquo; {/* Fallback to category as topic, or use title */}
                </p>
             </div>
 
-            {/* Author Metadata Bar */}
             <div className="flex items-center justify-between border-t border-b border-slate-200 py-4">
               <div className="flex items-center gap-3">
                 <div className="flex flex-col">
@@ -138,7 +144,6 @@ export default function DebatePage({ debate, trendingArticles }: DebateProps) {
             </div>
           </header>
 
-          {/* Main Image / Video Thumbnail */}
           <figure className="mb-10 relative h-75 md:h-112.5 w-full bg-slate-100 rounded-sm overflow-hidden shadow-sm group">
             <Image 
               src={debate.youtubeVideoId 
@@ -149,17 +154,15 @@ export default function DebatePage({ debate, trendingArticles }: DebateProps) {
               className="object-cover group-hover:scale-105 transition-transform duration-700"
               unoptimized
             />
-             {/* Play Icon Overlay */}
              {debate.youtubeVideoId && (
-                <div className="absolute inset-0 bg-black/20 flex items-center justify-center group-hover:bg-black/10 transition-colors pointer-events-none">
-                  <div className="w-16 h-16 bg-red-600/90 rounded-full flex items-center justify-center shadow-lg backdrop-blur-sm">
-                      <svg className="w-8 h-8 text-white ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-                  </div>
-                </div>
-              )}
+               <div className="absolute inset-0 bg-black/20 flex items-center justify-center group-hover:bg-black/10 transition-colors pointer-events-none">
+                 <div className="w-16 h-16 bg-red-600/90 rounded-full flex items-center justify-center shadow-lg backdrop-blur-sm">
+                     <svg className="w-8 h-8 text-white ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                 </div>
+               </div>
+             )}
           </figure>
 
-          {/* Watch on YouTube Button */}
           {debate.youtubeVideoId && (
             <div className="my-8 flex justify-center">
               <a
@@ -188,75 +191,38 @@ export default function DebatePage({ debate, trendingArticles }: DebateProps) {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 relative">
-              {/* Vertical Divider (Hidden on mobile) */}
               <div className="hidden md:block absolute left-1/2 top-0 bottom-0 w-px bg-slate-200 -ml-px"></div>
 
-              {/* Idubu Arguments */}
+              {/* Proposer (Faction 1) */}
               <div className="flex flex-col gap-4">
                 <div className="bg-blue-600 text-white p-4 rounded-t-lg text-center shadow-sm">
-                  <h3 className="text-xl font-bold uppercase tracking-wider">Idubu</h3>
-                  <p className="text-blue-100 text-xs font-bold mt-1">PRO-TWIRWANEHO</p>
+                  <h3 className="text-xl font-bold uppercase tracking-wider">{debate.proposerName}</h3>
+                  <p className="text-blue-100 text-xs font-bold mt-1">PROPOSER</p>
                 </div>
                 <div className="space-y-4">
-                  {debate.arguments.idubu.map((arg, index) => (
-                    <div key={arg.id || index} className="bg-white border-l-4 border-blue-600 rounded-r-lg shadow-xs p-5 hover:shadow-md transition-shadow">
-                      {arg.speakerName && (
-                        <div className="flex items-center gap-2 mb-2">
-                          <div className="w-2 h-2 rounded-full bg-blue-600"></div>
-                          <p className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                            {arg.speakerName}
-                          </p>
-                        </div>
-                      )}
-                      <p className="text-slate-800 leading-relaxed font-serif">&ldquo;{arg.argument}&rdquo;</p>
-                    </div>
-                  ))}
+                   <div className="bg-white border-l-4 border-blue-600 rounded-r-lg shadow-xs p-5 hover:shadow-md transition-shadow">
+                     {/* CSS FIX: break-words to handle long HTML text */}
+                     <div className="text-slate-800 leading-relaxed font-serif wrap-break-word" dangerouslySetInnerHTML={{ __html: debate.proposerArguments }} />
+                   </div>
                 </div>
               </div>
 
-              {/* Akagara Arguments */}
+              {/* Opposer (Faction 2) */}
               <div className="flex flex-col gap-4">
                 <div className="bg-orange-600 text-white p-4 rounded-t-lg text-center shadow-sm">
-                  <h3 className="text-xl font-bold uppercase tracking-wider">Akagara</h3>
-                  <p className="text-orange-100 text-xs font-bold mt-1">PRO-GOVERNMENT</p>
+                  <h3 className="text-xl font-bold uppercase tracking-wider">{debate.opposerName}</h3>
+                  <p className="text-orange-100 text-xs font-bold mt-1">OPPOSER</p>
                 </div>
                 <div className="space-y-4">
-                  {debate.arguments.akagara.map((arg, index) => (
-                    <div key={arg.id || index} className="bg-white border-l-4 border-orange-600 rounded-r-lg shadow-xs p-5 hover:shadow-md transition-shadow">
-                      {arg.speakerName && (
-                        <div className="flex items-center gap-2 mb-2">
-                          <div className="w-2 h-2 rounded-full bg-orange-600"></div>
-                          <p className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                            {arg.speakerName}
-                          </p>
-                        </div>
-                      )}
-                      <p className="text-slate-800 leading-relaxed font-serif">&ldquo;{arg.argument}&rdquo;</p>
-                    </div>
-                  ))}
+                   <div className="bg-white border-l-4 border-orange-600 rounded-r-lg shadow-xs p-5 hover:shadow-md transition-shadow">
+                     <div className="text-slate-800 leading-relaxed font-serif wrap-break-word" dangerouslySetInnerHTML={{ __html: debate.opposerArguments }} />
+                   </div>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* === THE VERDICT / CONCLUSION SECTION === */}
-          {debate.verdict && (
-             <div className="my-16 bg-slate-50 border-y-4 border-slate-900 py-10 px-6 md:px-12">
-               <h2 className="text-2xl font-black font-serif text-slate-900 mb-6 flex items-center gap-3">
-                 <span>⚖️</span> The Verdict
-               </h2>
-               <div className="prose prose-lg prose-slate max-w-none font-serif">
-                 {/* This displays the editorial conclusion/winner from the DB */}
-                 <p>{debate.verdict}</p>
-               </div>
-               
-               <div className="mt-6 flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-400">
-                 <span>Analysis by Imuhira Political Desk</span>
-               </div>
-             </div>
-          )}
-
-          {/* User Engagement Verdict */}
+          {/* User Engagement */}
           <div className="my-12 bg-white rounded-lg p-8 border border-slate-200 shadow-sm">
             <h2 className="text-lg font-bold mb-4 text-slate-800">
               What do you think?
@@ -266,33 +232,27 @@ export default function DebatePage({ debate, trendingArticles }: DebateProps) {
                 {t('We have presented the arguments from both sides. Who do you think made the stronger case? Join the discussion in the comments.')}
               </p>
             </div>
-            {/* Placeholder for Comment System */}
             <button className="text-sm font-bold text-red-700 border border-red-700 px-6 py-2 rounded-sm hover:bg-red-700 hover:text-white transition-colors">
               Post a Comment
             </button>
           </div>
 
-          {/* Neutral Stance Reminder */}
           <div className="mt-12 pt-8 border-t border-slate-200">
             <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Filed Under</h4>
             <div className="flex flex-wrap gap-2">
-              {['Debate', 'Banyamulenge', 'South Kivu', 'Twirwaneho', 'FARDC'].map((tag, i) => (
-                <span key={i} className="px-3 py-1 bg-slate-100 text-slate-600 text-xs font-bold uppercase tracking-wide rounded-sm hover:bg-slate-200 cursor-pointer transition-colors">
-                  #{tag}
+                <span className="px-3 py-1 bg-slate-100 text-slate-600 text-xs font-bold uppercase tracking-wide rounded-sm">
+                  #{debate.category}
                 </span>
-              ))}
             </div>
           </div>
 
         </article>
 
-        {/* === SIDEBAR === */}
         <Sidebar>
           <TrendingWidget articles={trendingArticles} lng={currentLanguage} />
           
           <div className="bg-slate-100 aspect-square w-full rounded-sm flex flex-col items-center justify-center text-slate-400 text-sm border-2 border-dashed border-slate-300">
              <span className="font-bold">{t('Advertisement')}</span>
-             <span className="text-xs">{t('Support Independent News')}</span>
           </div>
         </Sidebar>
 
@@ -306,13 +266,14 @@ export const getServerSideProps: GetServerSideProps = async ({ params, locale })
   const lng = params?.lng as string || locale || 'en';
 
   try {
-    // Fetch the debate by slug
-    const [debate] = await db
+    // 🟢 FETCH: Single query to debates table (using the new column names)
+    const [debateData] = await db
       .select()
       .from(debates)
       .where(eq(debates.slug, slug));
 
-    if (!debate || debate.status !== 'published') {
+    // 🟢 CHECK: Use 'isPublished' instead of status string
+    if (!debateData || !debateData.isPublished) {
       return {
         props: {
           debate: null,
@@ -322,45 +283,45 @@ export const getServerSideProps: GetServerSideProps = async ({ params, locale })
       };
     }
 
-    // Fetch arguments
-    const args = await db
-      .select()
-      .from(debateArguments)
-      .where(eq(debateArguments.debateId, debate.id));
-
-    // Serialize dates to strings for JSON
+    // Serialize dates
     const serializedDebate = {
-      ...debate,
-      createdAt: debate.createdAt?.toISOString() || null,
-      publishedAt: debate.publishedAt?.toISOString() || null,
-      arguments: {
-        idubu: args
-          .filter(a => a.faction === 'idubu')
-          .map(a => ({
-            ...a,
-            createdAt: a.createdAt?.toISOString() || null,
-          })),
-        akagara: args
-          .filter(a => a.faction === 'akagara')
-          .map(a => ({
-            ...a,
-            createdAt: a.createdAt?.toISOString() || null,
-          })),
-      },
+      id: debateData.id,
+      title: debateData.title,
+      slug: debateData.slug || '',
+      category: debateData.category || 'Politics', // Map category
+      summary: debateData.summary || '',
+      youtubeVideoId: debateData.youtubeVideoId || null,
+      mainImageUrl: debateData.mainImageUrl || null,
+      authorName: 'Imuhira Staff',
+      publishedAt: debateData.createdAt ? debateData.createdAt.toISOString() : null,
+      
+      // 🟢 MAP NEW COLUMNS
+      proposerName: debateData.proposerName || 'Proposer',
+      proposerArguments: debateData.proposerArguments || '',
+      opposerName: debateData.opposerName || 'Opposer',
+      opposerArguments: debateData.opposerArguments || '',
     };
 
-    const trendingArticlesData = await db.select().from(debates).orderBy(desc(debates.publishedAt)).limit(5).execute();
+    const trendingArticlesData = await db
+        .select()
+        .from(debates)
+        .where(eq(debates.isPublished, true))
+        .orderBy(desc(debates.createdAt))
+        .limit(5)
+        .execute();
 
     const trendingArticles = trendingArticlesData.map(a => ({
-        ...a,
-        publishedAt: a.publishedAt ? a.publishedAt.toISOString() : null,
-        createdAt: a.createdAt ? a.createdAt.toISOString() : null,
+        id: a.id,
+        title: a.title,
+        slug: a.slug || '',
         category: {
-            name: a.topic,
-            href: `/category/${a.topic.toLowerCase()}`
+            name: a.category || 'News',
+            href: `/category/${(a.category || 'news').toLowerCase()}`
         },
-        content: a.summary ? a.summary.split('\n') : [],
-        excerpt: a.summary ? a.summary.slice(0, 150) : '',
+        content: [],
+        excerpt: a.summary ? a.summary.slice(0, 100) + '...' : '',
+        publishedAt: a.createdAt ? a.createdAt.toISOString() : null,
+        createdAt: a.createdAt ? a.createdAt.toISOString() : null,
     }));
 
     return {

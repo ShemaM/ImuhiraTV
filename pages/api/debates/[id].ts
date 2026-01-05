@@ -1,99 +1,96 @@
+// pages/api/debates/[id].ts
+
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { db, debates, debateArguments } from '../../../db';
-import { eq, asc } from 'drizzle-orm';
+import { db, debates } from '../../../db';
+import { eq } from 'drizzle-orm';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { id } = req.query;
-  const debateId = Number(id);
 
-  if (isNaN(debateId)) return res.status(400).json({ error: 'Invalid ID' });
+  // 🟢 1. ID Validation: Check for string (UUID) instead of Number
+  if (!id || typeof id !== 'string') {
+    return res.status(400).json({ error: 'Invalid ID' });
+  }
 
-  // DELETE
+  // === DELETE ===
   if (req.method === 'DELETE') {
     try {
-      await db.delete(debateArguments).where(eq(debateArguments.debateId, debateId));
-      await db.delete(debates).where(eq(debates.id, debateId));
+      // 🟢 Simply delete the debate. No need to delete arguments separately anymore.
+      await db.delete(debates).where(eq(debates.id, id));
+      
       return res.status(200).json({ message: 'Debate deleted' });
-    } catch {
+    } catch (error) {
+      console.error(error);
       return res.status(500).json({ error: 'Failed to delete debate' });
     }
   }
 
-  // GET (For Edit Page)
+  // === GET (For Edit Page) ===
   if (req.method === 'GET') {
     try {
-      const result = await db.select().from(debates).where(eq(debates.id, debateId));
-      if (result.length === 0) return res.status(404).json({ error: 'Debate not found' });
+      const result = await db.select().from(debates).where(eq(debates.id, id));
       
-      // Fetch arguments ordered by index
-      const args = await db
-        .select()
-        .from(debateArguments)
-        .where(eq(debateArguments.debateId, debateId))
-        .orderBy(asc(debateArguments.orderIndex));
+      if (result.length === 0) {
+        return res.status(404).json({ error: 'Debate not found' });
+      }
+      
+      // 🟢 Return the data directly. 
+      // The frontend edit form should now expect 'proposerArguments' as a string, not an array.
+      return res.status(200).json(result[0]);
 
-      // 🟢 Return data mapped to our new schema
-      return res.status(200).json({
-        ...result[0],
-        arguments: {
-          faction1: args.filter(a => a.faction === 'faction1'),
-          faction2: args.filter(a => a.faction === 'faction2'),
-        }
-      });
     } catch (error) {
       console.error(error);
       return res.status(500).json({ error: 'Failed to fetch debate' });
     }
   }
 
-  // PUT (Update Debate)
+  // === PUT (Update Debate) ===
   if (req.method === 'PUT') {
     try {
+      // 🟢 Destructure the NEW schema fields from the request body
       const { 
-        title, slug, topic, summary, 
-        faction1Label, faction2Label,
-        youtubeVideoId, youtubeVideoTitle, mainImageUrl, 
-        authorName, status, 
-        faction1Arguments, faction2Arguments 
+        title, 
+        slug, 
+        category,        // was 'topic'
+        summary, 
+        
+        proposerName,    // was 'faction1Label'
+        opposerName,     // was 'faction2Label'
+        
+        proposerArguments, // now a single HTML string
+        opposerArguments,  // now a single HTML string
+
+        youtubeVideoId, 
+        mainImageUrl, 
+        isPublished      // was 'status'
       } = req.body;
 
-      await db.transaction(async (tx) => {
-        // 1. Update Debate Fields
-        await tx.update(debates)
-          .set({
-            title, slug, topic, summary,
-            faction1Label, faction2Label,
-            youtubeVideoId, youtubeVideoTitle, mainImageUrl,
-            authorName, status,
-            publishedAt: status === 'published' ? new Date() : null, // Reset date if republishing
-          })
-          .where(eq(debates.id, debateId));
-
-        // 2. Replace Arguments (Delete all & Re-insert)
-        // This is the safest way to handle reordering and edits
-        await tx.delete(debateArguments).where(eq(debateArguments.debateId, debateId));
-
-        if (faction1Arguments?.length) {
-          await tx.insert(debateArguments).values(
-            faction1Arguments.map((arg: string, index: number) => ({
-              debateId, faction: 'faction1', argument: arg, orderIndex: index
-            }))
-          );
-        }
-
-        if (faction2Arguments?.length) {
-          await tx.insert(debateArguments).values(
-            faction2Arguments.map((arg: string, index: number) => ({
-              debateId, faction: 'faction2', argument: arg, orderIndex: index
-            }))
-          );
-        }
-      });
+      // 🟢 Update query - No transaction needed anymore!
+      await db.update(debates)
+        .set({
+          title,
+          slug,
+          category,
+          summary,
+          proposerName,
+          opposerName,
+          proposerArguments,
+          opposerArguments,
+          youtubeVideoId,
+          mainImageUrl,
+          isPublished,
+          updatedAt: new Date(), // Always update the timestamp
+        })
+        .where(eq(debates.id, id));
 
       return res.status(200).json({ message: 'Updated successfully' });
+
     } catch (error) {
-      console.error(error);
+      console.error('Update Error:', error);
       return res.status(500).json({ error: 'Failed to update debate' });
     }
   }
+
+  // Method Not Allowed
+  return res.status(405).end();
 }

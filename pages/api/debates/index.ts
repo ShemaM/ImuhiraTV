@@ -1,119 +1,77 @@
 // pages/api/debates/index.ts
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { db, debates, debateArguments } from '../../../db';
-import { eq, desc, inArray } from 'drizzle-orm'; // Added inArray
-import { filterValidArguments, transformArgumentsForInsert, formatErrorResponse } from '../../../lib/debate-utils';
+import { db } from '../../../db';
+import { debates } from '../../../db/schema';
+import { desc } from 'drizzle-orm';
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
+  // === GET: Fetch All Debates ===
   if (req.method === 'GET') {
     try {
-      // 1. Fetch all debates first
+      // 🟢 Simply fetch from the single table
       const allDebates = await db
         .select()
         .from(debates)
         .orderBy(desc(debates.createdAt));
 
-      // Optimization: If no debates exist, return empty array immediately
-      if (allDebates.length === 0) {
-        return res.status(200).json([]);
-      }
-      
-      // 2. Extract IDs to fetch arguments in ONE query (Solves N+1 Problem)
-      const debateIds = allDebates.map(d => d.id);
-
-      const allArguments = await db
-        .select()
-        .from(debateArguments)
-        .where(inArray(debateArguments.debateId, debateIds));
-
-      // 3. Map arguments to debates in memory (Much faster than DB calls)
-      const debatesWithArguments = allDebates.map((debate) => {
-        const debateArgs = allArguments.filter(a => a.debateId === debate.id);
-        
-        return {
-          ...debate,
-          arguments: {
-            idubu: debateArgs.filter(a => a.faction === 'idubu'),
-            akagara: debateArgs.filter(a => a.faction === 'akagara'),
-          },
-        };
-      });
-
-      return res.status(200).json(debatesWithArguments);
+      // Return raw data (the arguments are already strings in the new schema)
+      return res.status(200).json(allDebates);
     } catch (error) {
       console.error('Error fetching debates:', error);
-      return res.status(500).json(formatErrorResponse(error, 'Failed to fetch debates'));
+      return res.status(500).json({ error: 'Failed to fetch debates' });
     }
   }
 
+  // === POST: Create New Debate ===
   if (req.method === 'POST') {
     try {
-      const { 
-        title, slug, topic, summary, verdict, 
-        youtubeVideoId, youtubeVideoTitle, mainImageUrl, 
-        authorName, status, idubuArguments, akagaraArguments 
-      } = req.body;
+      const data = req.body;
 
-      // Validate required fields
-      if (!title || !slug || !topic) {
+      // 1. Validate Required Fields
+      if (!data.title || !data.slug || !data.category) {
         return res.status(400).json({ 
-          error: 'Missing required fields: title, slug, and topic are required' 
+          error: 'Missing required fields: title, slug, and category are required' 
         });
       }
 
-      // Transaction: Ensures Debate AND Arguments are created together, or not at all
-      const result = await db.transaction(async (tx) => {
-        // 1. Insert Debate
-        const [newDebate] = await tx
-          .insert(debates)
-          .values({
-            title, slug, topic, summary,
-            youtubeVideoId, youtubeVideoTitle, mainImageUrl,
-            authorName: authorName || 'Imuhira Staff',
-            status: status || 'draft',
-            publishedAt: status === 'published' ? new Date() : null,
-          })
-          .returning();
-
-        // 2. Insert Idubu arguments using `tx`
-        const validIdubuArgs = filterValidArguments(idubuArguments);
-        if (validIdubuArgs.length > 0) {
-          await tx.insert(debateArguments).values(
-            transformArgumentsForInsert(validIdubuArgs, newDebate.id, 'idubu')
-          );
-        }
-
-        // 3. Insert Akagara arguments using `tx`
-        const validAkagaraArgs = filterValidArguments(akagaraArguments);
-        if (validAkagaraArgs.length > 0) {
-          await tx.insert(debateArguments).values(
-            transformArgumentsForInsert(validAkagaraArgs, newDebate.id, 'akagara')
-          );
-        }
-
-        return newDebate;
-      });
-
-      // Fetch the created arguments to return full object (Optional, but good for UI)
-      const args = await db
-        .select()
-        .from(debateArguments)
-        .where(eq(debateArguments.debateId, result.id));
+      // 2. Insert (No Transaction Needed anymore)
+      const [newDebate] = await db.insert(debates).values({
+        title: data.title,
+        slug: data.slug,
+        category: data.category, // was 'topic'
+        summary: data.summary,
+        
+        // 🟢 New Merged Columns
+        proposerName: data.proposerName || 'Proposer',
+        proposerArguments: data.proposerArguments || '', // HTML String
+        
+        opposerName: data.opposerName || 'Opposer',
+        opposerArguments: data.opposerArguments || '', // HTML String
+        
+        youtubeVideoId: data.youtubeVideoId,
+        mainImageUrl: data.mainImageUrl,
+        
+        // Map 'status' to boolean if needed, or expect boolean from frontend
+        isPublished: data.isPublished ?? (data.status === 'published'),
+      })
+      .returning();
 
       return res.status(201).json({
-        ...result,
-        arguments: {
-          idubu: args.filter(a => a.faction === 'idubu'),
-          akagara: args.filter(a => a.faction === 'akagara'),
-        },
+        message: 'Debate created successfully',
+        debate: newDebate
       });
 
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error creating debate:', error);
-      return res.status(500).json(formatErrorResponse(error, 'Failed to create debate'));
+      
+      // Handle Unique Constraint (Slug collision)
+      if (error && typeof error === 'object' && 'code' in error && error.code === '23505') {
+         return res.status(409).json({ error: 'A debate with this slug already exists.' });
+      }
+      return res.status(500).json({ error: 'Failed to create debate' });
     }
   }
 

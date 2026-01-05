@@ -12,13 +12,23 @@ import Layout from '../../components/layouts/Layout';
 import { languages } from '../../i18n/settings';
 import { db } from '../../db';
 import { debates } from '../../db/schema';
-import { desc } from 'drizzle-orm';
-import { Article } from '../../types';
+import { desc, eq } from 'drizzle-orm';
+// We define the interface locally to ensure it matches the mapping below exactly
+interface ArticleUI {
+  id: string;
+  title: string;
+  slug: string;
+  excerpt: string;
+  main_image_url: string;
+  published_at: string;
+  author_name: string;
+  category: { name: string; slug?: string };
+}
 
 interface HomeProps {
-  featuredArticle: Article;
-  latestArticles: Article[];
-  trendingArticles: Article[];
+  featuredArticle: ArticleUI | null;
+  latestArticles: ArticleUI[];
+  trendingArticles: ArticleUI[];
 }
 
 export default function Home({ featuredArticle, latestArticles, trendingArticles }: HomeProps) {
@@ -61,6 +71,7 @@ export default function Home({ featuredArticle, latestArticles, trendingArticles
 
         {/* 3. SIDEBAR (Right, 1/3 width) */}
         <Sidebar>
+          {/* Note: Ensure TrendingWidget accepts the ArticleUI shape */}
           <TrendingWidget articles={trendingArticles} lng={lng} />
 
           {/* Advertisement Placeholder */}
@@ -69,7 +80,7 @@ export default function Home({ featuredArticle, latestArticles, trendingArticles
             <span className="text-xs">300x250</span>
           </div>
 
-          {/* Newsletter (Optional Sidebar Module) */}
+          {/* Newsletter */}
           <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
             <h3 className="font-bold text-gray-900 mb-2">{t('Subscribe')}</h3>
             <p className="text-sm text-gray-600 mb-4">{t('Get the latest updates delivered to your inbox.')}</p>
@@ -100,17 +111,43 @@ export const getStaticPaths: GetStaticPaths = async () => {
 };
 
 export const getStaticProps: GetStaticProps = async ({ params }) => {
-  const allArticlesRaw = await db.select().from(debates).orderBy(desc(debates.publishedAt)).execute();
+  // 🟢 FIX 1: Sort by 'createdAt' (new schema), not 'publishedAt' (deleted)
+  const allArticlesRaw = await db
+    .select()
+    .from(debates)
+    .where(eq(debates.isPublished, true)) // Optional: Only show published items
+    .orderBy(desc(debates.createdAt))
+    .execute();
 
-  const allArticles = allArticlesRaw.map(a => ({
-    ...a,
-    publishedAt: a.publishedAt ? a.publishedAt.toISOString() : null,
-    createdAt: a.createdAt ? a.createdAt.toISOString() : null,
+  // 🟢 FIX 2: Manually map DB fields (camelCase) to UI fields (snake_case)
+  // This prevents the UI from crashing when looking for undefined properties.
+  const allArticles: ArticleUI[] = allArticlesRaw.map(a => ({
+    id: a.id,
+    title: a.title,
+    slug: a.slug || '',
+    
+    // Map 'summary' -> 'excerpt'
+    excerpt: a.summary ? a.summary.replace(/<[^>]+>/g, '').slice(0, 150) + '...' : '',
+    
+    // Map 'mainImageUrl' -> 'main_image_url'
+    main_image_url: a.mainImageUrl || '/images/placeholder.jpg',
+    
+    // Map 'createdAt' -> 'published_at'
+    published_at: a.createdAt 
+      ? new Date(a.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) 
+      : '',
+      
+    author_name: 'Imuhira Staff', // Default value since we don't have an author column yet
+    
+    // Map string category -> object category
+    category: { 
+      name: a.category || 'Politics', 
+      slug: (a.category || 'politics').toLowerCase() 
+    }
   }));
 
   const featuredArticle = allArticles[0] || null;
   const latestArticles = allArticles.slice(1, 5);
-  // For now, "trending" is the same as "latest".
   const trendingArticles = allArticles.slice(0, 5);
 
   return {
@@ -121,6 +158,6 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
       latestArticles,
       trendingArticles,
     },
-    revalidate: 60, // Re-generate the page every 60 seconds
+    revalidate: 60,
   };
 };

@@ -12,13 +12,44 @@ export default function NewDebate() {
     setIsSubmitting(true);
     setError(null);
 
+    // 🟢 TRANSFORM DATA: Map old form fields to new API fields
+    const payload = {
+      title: data.title,
+      slug: data.slug,
+      
+      // Map 'topic' -> 'category' (API requires 'category')
+      category: data.topic || 'Politics', 
+      
+      summary: data.summary,
+      
+      // Map labels -> Proposer/Opposer Names
+      proposerName: data.faction1Label || 'Proposer',
+      opposerName: data.faction2Label || 'Opposer',
+
+      // Map Arguments: Convert Array -> Single HTML String
+      // If your form returns an array of strings, we join them into paragraphs.
+      proposerArguments: Array.isArray(data.faction1Arguments) 
+        ? data.faction1Arguments.map(arg => `<p>${arg}</p>`).join('') 
+        : (data.faction1Arguments || ''),
+
+      opposerArguments: Array.isArray(data.faction2Arguments) 
+        ? data.faction2Arguments.map(arg => `<p>${arg}</p>`).join('') 
+        : (data.faction2Arguments || ''),
+
+      youtubeVideoId: data.youtubeVideoId,
+      mainImageUrl: data.mainImageUrl,
+      
+      // Map status string -> boolean
+      isPublished: data.status === 'published'
+    };
+
     try {
       const response = await fetch('/api/debates', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify(payload), // Send the transformed payload
       });
 
       if (!response.ok) {

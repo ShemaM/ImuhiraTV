@@ -3,10 +3,6 @@ import { useRouter } from 'next/router';
 import AdminLayout from '../../../../components/admin/AdminLayout';
 import DebateForm, { DebateFormData } from '../../../../components/admin/DebateForm';
 
-interface ArgumentApiData {
-  argument: string;
-}
-
 export default function EditDebate() {
   const router = useRouter();
   const { id } = router.query;
@@ -16,7 +12,7 @@ export default function EditDebate() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // 1. Fetch Existing Data
+  // 1. Fetch Existing Data & Transform to Form Format
   useEffect(() => {
     if (!id) return;
 
@@ -27,23 +23,48 @@ export default function EditDebate() {
         
         const data = await res.json();
 
-        // 🟢 Transform API data back to Form format
+        // 🟢 HELPER: Convert HTML string back to Array for the Form
+        // The form expects an array of strings. We try to extract text from <p> tags, 
+        // or just wrap the whole text if it's simple.
+        const parseArgs = (htmlContent: string | null) => {
+          if (!htmlContent) return [''];
+          // Simple regex to extract content between <p> tags
+          const matches = htmlContent.match(/<p>(.*?)<\/p>/g);
+          if (matches) {
+            return matches.map(s => s.replace(/<\/?p>/g, ''));
+          }
+          // Fallback: split by newlines or just return raw text as one item
+          return [htmlContent.replace(/<[^>]+>/g, '')]; 
+        };
+
+        // 🟢 MAP API (New Schema) -> FORM (Old Schema)
         setInitialData({
           title: data.title,
           slug: data.slug,
-          topic: data.topic,
+          
+          // Map category -> topic
+          topic: data.category, 
+          
           summary: data.summary,
-          verdict: data.verdict,
+          
+          // Map Names -> Labels
+          faction1Label: data.proposerName,
+          faction2Label: data.opposerName,
+          
+          // Map HTML String -> Array of Strings
+          faction1Arguments: parseArgs(data.proposerArguments),
+          faction2Arguments: parseArgs(data.opposerArguments),
+          
           youtubeVideoId: data.youtubeVideoId,
-          youtubeVideoTitle: data.youtubeVideoTitle,
+          youtubeVideoTitle: data.title, // Fallback if video title isn't stored
           mainImageUrl: data.mainImageUrl,
-          authorName: data.authorName,
-          status: data.status,
-          faction1Label: data.faction1Label,
-          faction2Label: data.faction2Label,
-          // Extract argument strings from objects
-          faction1Arguments: data.arguments.faction1.map((a: ArgumentApiData) => a.argument),
-          faction2Arguments: data.arguments.faction2.map((a: ArgumentApiData) => a.argument),
+          authorName: 'Imuhira Staff', // Default since we might not have it
+          
+          // Map Boolean -> String Status
+          status: data.isPublished ? 'published' : 'draft',
+          
+          // Legacy field (can leave empty)
+          verdict: '', 
         });
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Error loading debate');
@@ -55,19 +76,46 @@ export default function EditDebate() {
     fetchDebate();
   }, [id]);
 
-  // 2. Handle Update
+  // 2. Handle Update (Submit Form -> API)
   const handleSubmit = async (data: DebateFormData) => {
     setIsSubmitting(true);
     setError(null);
+
+    // 🟢 TRANSFORM DATA: Map Form fields -> API fields
+    const payload = {
+      title: data.title,
+      slug: data.slug,
+      category: (data.topic || 'politics').toLowerCase(), // Enforce lowercase
+      summary: data.summary,
+      
+      proposerName: data.faction1Label || 'Proposer',
+      opposerName: data.faction2Label || 'Opposer',
+
+      // Convert Array -> HTML String
+      proposerArguments: Array.isArray(data.faction1Arguments) 
+        ? data.faction1Arguments.map(arg => `<p>${arg}</p>`).join('') 
+        : data.faction1Arguments,
+
+      opposerArguments: Array.isArray(data.faction2Arguments) 
+        ? data.faction2Arguments.map(arg => `<p>${arg}</p>`).join('') 
+        : data.faction2Arguments,
+
+      youtubeVideoId: data.youtubeVideoId,
+      mainImageUrl: data.mainImageUrl,
+      isPublished: data.status === 'published',
+    };
 
     try {
       const res = await fetch(`/api/debates/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
+        body: JSON.stringify(payload),
       });
 
-      if (!res.ok) throw new Error('Failed to update debate');
+      if (!res.ok) {
+        const result = await res.json();
+        throw new Error(result.error || 'Failed to update debate');
+      }
 
       router.push('/admin/debates');
     } catch (err) {
@@ -81,7 +129,6 @@ export default function EditDebate() {
 
   return (
     <AdminLayout title="Edit Debate">
-      {/* 🟢 Reusing the DebateForm with initialData */}
       {initialData && (
         <DebateForm 
           initialData={initialData} 

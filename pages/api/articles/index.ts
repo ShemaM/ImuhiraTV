@@ -6,17 +6,17 @@ import { desc } from 'drizzle-orm';
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {
     try {
-      const allArticles = await db.select().from(debates).orderBy(desc(debates.publishedAt)).execute();
+      const allArticles = await db.select().from(debates).orderBy(desc(debates.createdAt)).execute();
       
       const articles = allArticles.map(a => ({
         ...a,
         category: {
-          name: a.topic,
-          href: `/category/${a.topic.toLowerCase()}`,
+          name: a.category,
+          href: `/category/${a.category.toLowerCase()}`,
         },
         content: a.summary ? a.summary.split('\n') : [],
         excerpt: a.summary ? a.summary.slice(0, 150) : '',
-      }));
+      })) ;
 
       res.status(200).json(articles);
     } catch (error) {

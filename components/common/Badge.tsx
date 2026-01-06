@@ -10,6 +10,7 @@ interface BadgeProps {
 export default function Badge({ label, href, className = "" }: BadgeProps) {
   // Styles: Dark Red background, white text, sharp corners (rounded-sm)
   // Added shadow-sm so it stands out against images
+  // Font: Sans-serif, bold, uppercase, tracking-widest, small text size (text-xs)
   const baseStyles = "inline-block bg-red-700 text-white text-[10px] font-bold px-2 py-1 uppercase tracking-widest rounded-sm shadow-sm font-sans";
   
   if (href) {

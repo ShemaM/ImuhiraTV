@@ -2,6 +2,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import Badge from './Badge';
+import { useTranslation } from 'next-i18next';
 
 interface ArticleProps {
   article: {
@@ -17,10 +18,23 @@ interface ArticleProps {
 }
 
 export default function ArticleCard({ article, lng }: ArticleProps) {
+  const { t } = useTranslation(['articles', 'common']);
+  
   // STEP 1 FIX: Create a robust URL variable.
   // This ensures we point to "/articles/" (plural) + the unique slug.
   // If slug is missing for some reason, it defaults to '#' to prevent crashing.
   const validUrl = article.slug ? `/${lng}/articles/${article.slug}` : '#';
+
+  // Try to get translated title and excerpt from articles.json using slug as key
+  // If translation exists, use it; otherwise fall back to database values
+  const translatedTitle = t(`${article.slug}.title`, { ns: 'articles', defaultValue: '' });
+  const translatedExcerpt = t(`${article.slug}.excerpt`, { ns: 'articles', defaultValue: '' });
+  
+  const displayTitle = translatedTitle && translatedTitle !== `${article.slug}.title` ? translatedTitle : article.title;
+  const displayExcerpt = translatedExcerpt && translatedExcerpt !== `${article.slug}.excerpt` ? translatedExcerpt : article.excerpt;
+
+  // Translate category name
+  const translatedCategory = t(article.category?.name || 'News', { ns: 'common' });
 
   return (
     <div className="group flex flex-col h-full">
@@ -28,14 +42,14 @@ export default function ArticleCard({ article, lng }: ArticleProps) {
       <Link href={validUrl} className="block relative aspect-4/3 w-full bg-slate-100 overflow-hidden rounded-sm mb-4">
         <Image 
           src={article.main_image_url} 
-          alt={article.title}
+          alt={displayTitle}
           fill
           className="object-cover transition-transform duration-700 group-hover:scale-105"
           unoptimized
         />
         {/* Badge */}
         <div className="absolute top-2 left-2 z-10">
-          <Badge label={article.category?.name || 'News'} />
+          <Badge label={translatedCategory} />
         </div>
       </Link>
 
@@ -43,12 +57,12 @@ export default function ArticleCard({ article, lng }: ArticleProps) {
       <div className="flex flex-col grow">
         <Link href={validUrl} className="block mb-3">
           <h3 className="text-xl font-bold font-serif leading-tight text-slate-900 group-hover:text-red-700 transition-colors">
-            {article.title}
+            {displayTitle}
           </h3>
         </Link>
         
         <p className="text-slate-600 text-sm leading-relaxed line-clamp-3 mb-4 grow">
-          {article.excerpt}
+          {displayExcerpt}
         </p>
 
         {/* Footer / Metadata */}

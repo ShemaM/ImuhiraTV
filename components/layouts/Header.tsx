@@ -45,13 +45,13 @@ export default function Header({ onSearchClick, onSubscribeClick }: HeaderProps)
             </span>
           </Link>
 
-          {/* Desktop Nav */}
-          <nav className="hidden md:flex items-center gap-8">
+          {/* Desktop Nav - visible on sm screens and up for laptop support */}
+          <nav className="hidden sm:flex items-center gap-4 lg:gap-8">
             {NAV_LINKS.map((link) => (
               <Link 
                 key={link.name} 
                 href={`/${router.query.lng || 'en'}${link.href}`}
-                className="text-xs font-bold text-slate-500 hover:text-red-700 uppercase tracking-widest transition-colors"
+                className="text-[10px] lg:text-xs font-bold text-slate-500 hover:text-red-700 uppercase tracking-widest transition-colors"
               >
                 {t(link.name)}
               </Link>
@@ -70,7 +70,7 @@ export default function Header({ onSearchClick, onSubscribeClick }: HeaderProps)
             {/* Subscribe CTA - CONNECTED */}
             <button 
               onClick={onSubscribeClick}
-              className="bg-slate-900 text-white px-5 py-2.5 rounded-sm text-xs font-bold uppercase tracking-widest hover:bg-red-700 transition-colors shadow-sm"
+              className="bg-slate-900 text-white px-3 lg:px-5 py-2 lg:py-2.5 rounded-sm text-[10px] lg:text-xs font-bold uppercase tracking-widest hover:bg-red-700 transition-colors shadow-sm"
             >
               {t('Subscribe')}
             </button>
@@ -79,19 +79,19 @@ export default function Header({ onSearchClick, onSubscribeClick }: HeaderProps)
             <select
               onChange={onLangChange}
               value={router.query.lng as string || 'en'}
-              className="text-xs font-bold text-slate-500 hover:text-red-700 uppercase tracking-widest transition-colors bg-transparent"
+              className="text-[10px] lg:text-xs font-bold text-slate-500 hover:text-red-700 uppercase tracking-widest transition-colors bg-transparent"
               aria-label="Select language"
             >
-              <option value="en">English</option>
-              <option value="fr">Français</option>
-              <option value="sw">Kiswahili</option>
-              <option value="ki">Kinyamulenge</option>
+              <option value="en">EN</option>
+              <option value="fr">FR</option>
+              <option value="sw">SW</option>
+              <option value="ki">KI</option>
             </select>
           </nav>
 
-          {/* Mobile Menu Toggle */}
+          {/* Mobile Menu Toggle - only visible on very small screens */}
           <button
-            className="md:hidden text-slate-900 p-2"
+            className="sm:hidden text-slate-900 p-2"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             title="Open mobile menu"
             aria-label="Open mobile menu"
@@ -103,10 +103,34 @@ export default function Header({ onSearchClick, onSubscribeClick }: HeaderProps)
 
       {/* Mobile Menu - CONNECTED */}
       {isMobileMenuOpen && (
-        <div className="md:hidden bg-white border-t border-slate-100 absolute left-0 right-0 shadow-xl z-50">
+        <div className="sm:hidden bg-white border-t border-slate-100 absolute left-0 right-0 shadow-xl z-50">
           <nav className="flex flex-col p-4 space-y-2">
-            {/* ... Links ... */}
-            <div className="pt-4 flex flex-col gap-3">
+            {/* Navigation Links */}
+            {NAV_LINKS.map((link) => (
+              <Link 
+                key={link.name} 
+                href={`/${router.query.lng || 'en'}${link.href}`}
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="text-sm font-bold text-slate-700 hover:text-red-700 uppercase tracking-widest transition-colors py-2"
+              >
+                {t(link.name)}
+              </Link>
+            ))}
+            
+            {/* Language Switcher */}
+            <select
+              onChange={(e) => { onLangChange(e); setIsMobileMenuOpen(false); }}
+              value={router.query.lng as string || 'en'}
+              className="text-sm font-bold text-slate-500 hover:text-red-700 uppercase tracking-widest transition-colors bg-transparent py-2"
+              aria-label="Select language"
+            >
+              <option value="en">English</option>
+              <option value="fr">Français</option>
+              <option value="sw">Kiswahili</option>
+              <option value="ki">Kinyamulenge</option>
+            </select>
+            
+            <div className="pt-4 flex flex-col gap-3 border-t border-slate-100">
               <button 
                 onClick={() => { setIsMobileMenuOpen(false); onSearchClick(); }}
                 className="w-full bg-slate-100 text-slate-900 px-4 py-3 rounded-sm text-xs font-bold uppercase tracking-widest hover:bg-slate-200"

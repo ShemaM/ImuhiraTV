@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { useTranslation } from 'next-i18next';
 
 interface TrendingArticle {
   id: number | string;
@@ -13,12 +14,14 @@ interface TrendingWidgetProps {
 }
 
 export default function TrendingWidget({ articles, lng }: TrendingWidgetProps) {
+  const { t } = useTranslation(['articles', 'common']);
+
   return (
     <div className="mb-8">
       <div className="flex items-center mb-6">
         <span className="w-2 h-2 bg-red-600 rounded-full mr-2 animate-pulse"></span>
         <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500">
-          Most Read / Live
+          {t('Trending', { ns: 'common' })}
         </h3>
       </div>
       
@@ -27,6 +30,10 @@ export default function TrendingWidget({ articles, lng }: TrendingWidgetProps) {
           // FIX: Force construction of the correct URL if href is missing
           // This ensures it goes to /articles/slug, not just '#'
           const validUrl = item.slug ? `/${lng}/articles/${item.slug}` : '#';
+
+          // Try to get translated title from articles.json using slug as key
+          const translatedTitle = t(`${item.slug}.title`, { ns: 'articles', defaultValue: '' });
+          const displayTitle = translatedTitle && translatedTitle !== `${item.slug}.title` ? translatedTitle : item.title;
 
           return (
             <Link 
@@ -40,10 +47,10 @@ export default function TrendingWidget({ articles, lng }: TrendingWidgetProps) {
               
               <div className="pt-1">
                 <h4 className="text-base font-bold leading-snug text-slate-900 font-serif group-hover:text-red-700 transition-colors">
-                  {item.title}
+                  {displayTitle}
                 </h4>
                 <span className="text-[10px] text-red-700 font-bold mt-2 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300 block uppercase tracking-wide">
-                  Read full story &rarr;
+                  {t('View All News', { ns: 'common' })} &rarr;
                 </span>
               </div>
             </Link>

@@ -17,6 +17,7 @@ import { languages } from '../../../i18n/settings';
 import { db } from '../../../db';
 import { debates, articles } from '../../../db/schema';
 import { desc, eq } from 'drizzle-orm';
+import { getTranslatedArticle, getTranslatedDebate } from '../../../lib/get-translated-content';
 
 // Types
 interface Category {
@@ -271,6 +272,7 @@ export const getStaticPaths: GetStaticPaths = async () => {
 
 export const getStaticProps: GetStaticProps = async ({ params, locale }) => {
   const slug = params?.slug as string;
+  const lng = params?.lng as string || locale || 'en';
   
   const formatDate = (date: Date | null) => {
     if (!date) return '';
@@ -290,10 +292,14 @@ export const getStaticProps: GetStaticProps = async ({ params, locale }) => {
   let article: Article | null = null;
 
   if (articleFromArticles) {
-    // Map from articles table
+    // Get translated content based on language
+    // Pass the database object directly since it contains all translation fields
+    const translated = getTranslatedArticle(articleFromArticles, lng);
+
+    // Map from articles table with translated content
     article = {
       id: articleFromArticles.id,
-      title: articleFromArticles.title,
+      title: translated.title,
       slug: articleFromArticles.slug || '',
       mainImageUrl: articleFromArticles.coverImage || '',
       authorName: 'Imuhira Staff',
@@ -303,10 +309,10 @@ export const getStaticProps: GetStaticProps = async ({ params, locale }) => {
         name: 'News',
         href: `/category/news`,
       },
-      content: articleFromArticles.content || '',
-      excerpt: articleFromArticles.excerpt ||
-        (articleFromArticles.content
-          ? articleFromArticles.content.replace(/<[^>]+>/g, '').slice(0, 150) + '...'
+      content: translated.content || '',
+      excerpt: translated.excerpt ||
+        (translated.content
+          ? translated.content.replace(/<[^>]+>/g, '').slice(0, 150) + '...'
           : ''),
       // Articles don't have faction arguments
       faction1Label: null,
@@ -321,9 +327,13 @@ export const getStaticProps: GetStaticProps = async ({ params, locale }) => {
     });
 
     if (articleFromDebates) {
+      // Get translated content based on language
+      // Pass the database object directly
+      const translated = getTranslatedDebate(articleFromDebates, lng);
+
       article = {
         id: articleFromDebates.id,
-        title: articleFromDebates.title,
+        title: translated.title,
         slug: articleFromDebates.slug || '',
         mainImageUrl: articleFromDebates.mainImageUrl || '',
         authorName: 'Imuhira Staff',
@@ -333,15 +343,15 @@ export const getStaticProps: GetStaticProps = async ({ params, locale }) => {
           name: articleFromDebates.category || 'Politics',
           href: `/category/${(articleFromDebates.category || 'politics').toLowerCase()}`,
         },
-        content: articleFromDebates.summary || '',
-        excerpt: articleFromDebates.summary
-          ? articleFromDebates.summary.replace(/<[^>]+>/g, '').slice(0, 150) + '...'
+        content: translated.summary || '',
+        excerpt: translated.summary
+          ? translated.summary.replace(/<[^>]+>/g, '').slice(0, 150) + '...'
           : '',
         // Rich Text Mapping: Pass raw HTML strings directly
-        faction1Label: articleFromDebates.proposerName || 'Group A',
-        faction2Label: articleFromDebates.opposerName || 'Group B',
-        faction1Arguments: articleFromDebates.proposerArguments,
-        faction2Arguments: articleFromDebates.opposerArguments,
+        faction1Label: translated.proposerName || 'Group A',
+        faction2Label: translated.opposerName || 'Group B',
+        faction1Arguments: translated.proposerArguments,
+        faction2Arguments: translated.opposerArguments,
       };
     }
   }
@@ -356,11 +366,16 @@ export const getStaticProps: GetStaticProps = async ({ params, locale }) => {
     .orderBy(desc(debates.createdAt))
     .limit(5);
 
-  const trendingArticles = trendingData.map(a => ({
+  // Get translated trending articles
+  const trendingArticles = trendingData.map(a => {
+    // Pass the database object directly
+    const translated = getTranslatedDebate(a, lng);
+
+    return {
       id: a.id,
-      title: a.title,
+      title: translated.title,
       slug: a.slug || '',
-      excerpt: a.summary ? a.summary.replace(/<[^>]+>/g, '').slice(0, 100) + '...' : '',
+      excerpt: translated.summary ? translated.summary.replace(/<[^>]+>/g, '').slice(0, 100) + '...' : '',
       mainImageUrl: a.mainImageUrl || '',
       authorName: 'Imuhira Staff',
       publishedAt: formatDate(a.createdAt),
@@ -370,14 +385,15 @@ export const getStaticProps: GetStaticProps = async ({ params, locale }) => {
       },
       content: '',
       youtubeVideoId: a.youtubeVideoId || null
-  }));
+    };
+  });
 
   return {
     props: {
       article,
       trendingArticles,
-      lng: params?.lng || 'en',
-      ...(await serverSideTranslations(params?.lng as string || locale || 'en', ['common', 'articles'])),
+      lng,
+      ...(await serverSideTranslations(lng, ['common', 'articles'])),
     },
     revalidate: 60,
   };

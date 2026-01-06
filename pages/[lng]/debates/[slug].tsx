@@ -13,6 +13,7 @@ import TrendingWidget from '../../../components/common/TrendingWidget';
 import Badge from '../../../components/common/Badge';
 import { db, debates } from '../../../db';
 import { eq, desc } from 'drizzle-orm';
+import { getTranslatedDebate } from '../../../lib/get-translated-content';
 
 // Types
 interface TrendingArticle {
@@ -283,23 +284,27 @@ export const getServerSideProps: GetServerSideProps = async ({ params, locale })
       };
     }
 
-    // Serialize dates
+    // Get translated content based on language
+    // Pass the database object directly since it contains all translation fields
+    const translated = getTranslatedDebate(debateData, lng);
+
+    // Serialize dates with translated content
     const serializedDebate = {
       id: debateData.id,
-      title: debateData.title,
+      title: translated.title,
       slug: debateData.slug || '',
       category: debateData.category || 'Politics', // Map category
-      summary: debateData.summary || '',
+      summary: translated.summary || '',
       youtubeVideoId: debateData.youtubeVideoId || null,
       mainImageUrl: debateData.mainImageUrl || null,
       authorName: 'Imuhira Staff',
       publishedAt: debateData.createdAt ? debateData.createdAt.toISOString() : null,
       
-      // 🟢 MAP NEW COLUMNS
-      proposerName: debateData.proposerName || 'Proposer',
-      proposerArguments: debateData.proposerArguments || '',
-      opposerName: debateData.opposerName || 'Opposer',
-      opposerArguments: debateData.opposerArguments || '',
+      // 🟢 MAP TRANSLATED COLUMNS
+      proposerName: translated.proposerName || 'Proposer',
+      proposerArguments: translated.proposerArguments || '',
+      opposerName: translated.opposerName || 'Opposer',
+      opposerArguments: translated.opposerArguments || '',
     };
 
     const trendingArticlesData = await db
@@ -310,19 +315,25 @@ export const getServerSideProps: GetServerSideProps = async ({ params, locale })
         .limit(5)
         .execute();
 
-    const trendingArticles = trendingArticlesData.map(a => ({
+    // Get translated trending articles
+    const trendingArticles = trendingArticlesData.map(a => {
+      // Pass the database object directly
+      const translatedTrending = getTranslatedDebate(a, lng);
+
+      return {
         id: a.id,
-        title: a.title,
+        title: translatedTrending.title,
         slug: a.slug || '',
         category: {
             name: a.category || 'News',
             href: `/category/${(a.category || 'news').toLowerCase()}`
         },
         content: [],
-        excerpt: a.summary ? a.summary.slice(0, 100) + '...' : '',
+        excerpt: translatedTrending.summary ? translatedTrending.summary.slice(0, 100) + '...' : '',
         publishedAt: a.createdAt ? a.createdAt.toISOString() : null,
         createdAt: a.createdAt ? a.createdAt.toISOString() : null,
-    }));
+      };
+    });
 
     return {
       props: {

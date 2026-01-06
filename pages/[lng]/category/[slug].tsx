@@ -10,6 +10,7 @@ import { languages } from '../../../i18n/settings';
 import { db } from '../../../db';
 import { debates } from '../../../db/schema';
 import { eq } from 'drizzle-orm';
+import { getTranslatedDebate } from '../../../lib/get-translated-content';
 
 // Types to match your component expectations
 interface Article {
@@ -92,6 +93,7 @@ export const getStaticPaths: GetStaticPaths = async () => {
 
 export const getStaticProps: GetStaticProps = async ({ params, locale }) => {
   const slug = (params?.slug as string) || '';
+  const lng = params?.lng as string || locale || 'en';
 
   // 1. Fetch articles where category matches the slug
   // Note: We store categories as lowercase in the DB now ('politics'), so exact match works.
@@ -101,33 +103,38 @@ export const getStaticProps: GetStaticProps = async ({ params, locale }) => {
     .where(eq(debates.category, slug)) 
     .execute();
 
-  // 2. Map DB fields (camelCase) to Component Props (snake_case)
-  const articles: Article[] = articlesData.map(a => ({
-    id: a.id,
-    title: a.title,
-    slug: a.slug || '',
-    
-    // Create excerpt from summary
-    excerpt: a.summary 
-      ? a.summary.replace(/<[^>]+>/g, '').slice(0, 150) + '...' 
-      : '',
+  // 2. Map DB fields (camelCase) to Component Props (snake_case) with translations
+  const articles: Article[] = articlesData.map(a => {
+    // Pass the database object directly
+    const translated = getTranslatedDebate(a, lng);
 
-    // Map mainImageUrl -> main_image_url
-    main_image_url: a.mainImageUrl || '/images/placeholder.jpg',
-    
-    // Map createdAt -> published_at
-    published_at: a.createdAt 
-      ? new Date(a.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) 
-      : '',
+    return {
+      id: a.id,
+      title: translated.title,
+      slug: a.slug || '',
       
-    author_name: 'Imuhira Staff',
-    
-    category: {
-      name: a.category || slug,
-      href: `/category/${(a.category || slug).toLowerCase()}`,
-      slug: (a.category || slug).toLowerCase()
-    },
-  }));
+      // Create excerpt from translated summary
+      excerpt: translated.summary 
+        ? translated.summary.replace(/<[^>]+>/g, '').slice(0, 150) + '...' 
+        : '',
+
+      // Map mainImageUrl -> main_image_url
+      main_image_url: a.mainImageUrl || '/images/placeholder.jpg',
+      
+      // Map createdAt -> published_at
+      published_at: a.createdAt 
+        ? new Date(a.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) 
+        : '',
+        
+      author_name: 'Imuhira Staff',
+      
+      category: {
+        name: a.category || slug,
+        href: `/category/${(a.category || slug).toLowerCase()}`,
+        slug: (a.category || slug).toLowerCase()
+      },
+    };
+  });
 
   const category = { name: slug, href: `/category/${slug}` };
 
@@ -135,8 +142,8 @@ export const getStaticProps: GetStaticProps = async ({ params, locale }) => {
     props: {
       articles,
       category,
-      lng: params?.lng || 'en',
-      ...(await serverSideTranslations(params?.lng as string || locale || 'en', ['common'])),
+      lng,
+      ...(await serverSideTranslations(lng, ['common'])),
     },
     revalidate: 60,
   };

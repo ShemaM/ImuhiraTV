@@ -73,6 +73,15 @@ export const articles = pgTable('articles', {
   isPublished: boolean('is_published').default(false),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
+  // Translation Fields
+  titleSw: text('title_sw'),
+  contentSw: text('content_sw'),
+  
+  titleFr: text('title_fr'),
+  contentFr: text('content_fr'),
+  
+  titleKym: text('title_kym'), // Kinyamulenge
+  contentKym: text('content_kym'),
 });
 
 // === RELATIONSHIPS ===

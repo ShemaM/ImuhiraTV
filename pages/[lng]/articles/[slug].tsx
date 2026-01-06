@@ -231,7 +231,7 @@ export default function ArticlePage({ article, trendingArticles }: PageProps) {
           </div>
 
       {/* 🟢 NEW COMMENT SECTION */}
-      <CommentSection debateId={article.id} />
+      <CommentSection debateId={article.id} showVerdict={!!hasArguments} />
 
     
         </article>

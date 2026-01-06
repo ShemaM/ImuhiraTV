@@ -12,6 +12,7 @@ interface Comment {
 
 interface Props {
   debateId: string | number;
+  showVerdict?: boolean; // Optional prop to show/hide verdict section
 }
 
 // 1. Define Props for the Form so we can pass state down
@@ -178,7 +179,7 @@ const CommentItem = ({
 };
 
 // --- Main Component ---
-export default function CommentSection({ debateId }: Props) {
+export default function CommentSection({ debateId, showVerdict = true }: Props) {
   const [comments, setComments] = useState<Comment[]>([]);
   
   // Form State
@@ -251,14 +252,16 @@ export default function CommentSection({ debateId }: Props) {
   return (
     <div className="max-w-3xl mx-auto mt-16 pb-24">
       
-      <div className="bg-white border border-slate-200 rounded-lg p-8 text-center shadow-sm mb-12">
-        <h2 className="text-xl font-black font-serif text-slate-900 mb-2 flex items-center justify-center gap-2">
-          <span>⚖️</span> What is your verdict?
-        </h2>
-        <p className="text-slate-600 text-sm">
-          We&apos;ve presented the arguments. Now the floor is yours.
-        </p>
-      </div>
+      {showVerdict && (
+        <div className="bg-white border border-slate-200 rounded-lg p-8 text-center shadow-sm mb-12">
+          <h2 className="text-xl font-black font-serif text-slate-900 mb-2 flex items-center justify-center gap-2">
+            <span>⚖️</span> What is your verdict?
+          </h2>
+          <p className="text-slate-600 text-sm">
+            We&apos;ve presented the arguments. Now the floor is yours.
+          </p>
+        </div>
+      )}
 
       {/* Main Input Form */}
       <div className="mb-12">

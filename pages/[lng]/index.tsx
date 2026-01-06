@@ -137,32 +137,8 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
 
   // Map debates to ArticleUI format with translations
   const debatesFormatted: ArticleWithRawDate[] = debatesRaw.map(a => {
-    const translated = getTranslatedDebate({
-      title: a.title,
-      summary: a.summary,
-      proposerName: a.proposerName,
-      proposerArguments: a.proposerArguments,
-      opposerName: a.opposerName,
-      opposerArguments: a.opposerArguments,
-      titleSw: a.titleSw,
-      summarySw: a.summarySw,
-      proposerNameSw: a.proposerNameSw,
-      proposerArgumentsSw: a.proposerArgumentsSw,
-      opposerNameSw: a.opposerNameSw,
-      opposerArgumentsSw: a.opposerArgumentsSw,
-      titleFr: a.titleFr,
-      summaryFr: a.summaryFr,
-      proposerNameFr: a.proposerNameFr,
-      proposerArgumentsFr: a.proposerArgumentsFr,
-      opposerNameFr: a.opposerNameFr,
-      opposerArgumentsFr: a.opposerArgumentsFr,
-      titleKym: a.titleKym,
-      summaryKym: a.summaryKym,
-      proposerNameKym: a.proposerNameKym,
-      proposerArgumentsKym: a.proposerArgumentsKym,
-      opposerNameKym: a.opposerNameKym,
-      opposerArgumentsKym: a.opposerArgumentsKym,
-    }, lng);
+    // Pass the database object directly since it contains all translation fields
+    const translated = getTranslatedDebate(a, lng);
 
     return {
       id: a.id,
@@ -184,20 +160,8 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
 
   // Map articles to ArticleUI format with translations
   const articlesFormatted: ArticleWithRawDate[] = articlesRaw.map(a => {
-    const translated = getTranslatedArticle({
-      title: a.title,
-      excerpt: a.excerpt,
-      content: a.content,
-      titleSw: a.titleSw,
-      excerptSw: a.excerptSw,
-      contentSw: a.contentSw,
-      titleFr: a.titleFr,
-      excerptFr: a.excerptFr,
-      contentFr: a.contentFr,
-      titleKym: a.titleKym,
-      excerptKym: a.excerptKym,
-      contentKym: a.contentKym,
-    }, lng);
+    // Pass the database object directly since it contains all translation fields
+    const translated = getTranslatedArticle(a, lng);
 
     return {
       id: a.id,

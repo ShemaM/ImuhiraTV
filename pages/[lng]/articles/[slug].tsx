@@ -293,20 +293,8 @@ export const getStaticProps: GetStaticProps = async ({ params, locale }) => {
 
   if (articleFromArticles) {
     // Get translated content based on language
-    const translated = getTranslatedArticle({
-      title: articleFromArticles.title,
-      excerpt: articleFromArticles.excerpt,
-      content: articleFromArticles.content,
-      titleSw: articleFromArticles.titleSw,
-      excerptSw: articleFromArticles.excerptSw,
-      contentSw: articleFromArticles.contentSw,
-      titleFr: articleFromArticles.titleFr,
-      excerptFr: articleFromArticles.excerptFr,
-      contentFr: articleFromArticles.contentFr,
-      titleKym: articleFromArticles.titleKym,
-      excerptKym: articleFromArticles.excerptKym,
-      contentKym: articleFromArticles.contentKym,
-    }, lng);
+    // Pass the database object directly since it contains all translation fields
+    const translated = getTranslatedArticle(articleFromArticles, lng);
 
     // Map from articles table with translated content
     article = {
@@ -340,32 +328,8 @@ export const getStaticProps: GetStaticProps = async ({ params, locale }) => {
 
     if (articleFromDebates) {
       // Get translated content based on language
-      const translated = getTranslatedDebate({
-        title: articleFromDebates.title,
-        summary: articleFromDebates.summary,
-        proposerName: articleFromDebates.proposerName,
-        proposerArguments: articleFromDebates.proposerArguments,
-        opposerName: articleFromDebates.opposerName,
-        opposerArguments: articleFromDebates.opposerArguments,
-        titleSw: articleFromDebates.titleSw,
-        summarySw: articleFromDebates.summarySw,
-        proposerNameSw: articleFromDebates.proposerNameSw,
-        proposerArgumentsSw: articleFromDebates.proposerArgumentsSw,
-        opposerNameSw: articleFromDebates.opposerNameSw,
-        opposerArgumentsSw: articleFromDebates.opposerArgumentsSw,
-        titleFr: articleFromDebates.titleFr,
-        summaryFr: articleFromDebates.summaryFr,
-        proposerNameFr: articleFromDebates.proposerNameFr,
-        proposerArgumentsFr: articleFromDebates.proposerArgumentsFr,
-        opposerNameFr: articleFromDebates.opposerNameFr,
-        opposerArgumentsFr: articleFromDebates.opposerArgumentsFr,
-        titleKym: articleFromDebates.titleKym,
-        summaryKym: articleFromDebates.summaryKym,
-        proposerNameKym: articleFromDebates.proposerNameKym,
-        proposerArgumentsKym: articleFromDebates.proposerArgumentsKym,
-        opposerNameKym: articleFromDebates.opposerNameKym,
-        opposerArgumentsKym: articleFromDebates.opposerArgumentsKym,
-      }, lng);
+      // Pass the database object directly
+      const translated = getTranslatedDebate(articleFromDebates, lng);
 
       article = {
         id: articleFromDebates.id,
@@ -404,32 +368,8 @@ export const getStaticProps: GetStaticProps = async ({ params, locale }) => {
 
   // Get translated trending articles
   const trendingArticles = trendingData.map(a => {
-    const translated = getTranslatedDebate({
-      title: a.title,
-      summary: a.summary,
-      proposerName: a.proposerName,
-      proposerArguments: a.proposerArguments,
-      opposerName: a.opposerName,
-      opposerArguments: a.opposerArguments,
-      titleSw: a.titleSw,
-      summarySw: a.summarySw,
-      proposerNameSw: a.proposerNameSw,
-      proposerArgumentsSw: a.proposerArgumentsSw,
-      opposerNameSw: a.opposerNameSw,
-      opposerArgumentsSw: a.opposerArgumentsSw,
-      titleFr: a.titleFr,
-      summaryFr: a.summaryFr,
-      proposerNameFr: a.proposerNameFr,
-      proposerArgumentsFr: a.proposerArgumentsFr,
-      opposerNameFr: a.opposerNameFr,
-      opposerArgumentsFr: a.opposerArgumentsFr,
-      titleKym: a.titleKym,
-      summaryKym: a.summaryKym,
-      proposerNameKym: a.proposerNameKym,
-      proposerArgumentsKym: a.proposerArgumentsKym,
-      opposerNameKym: a.opposerNameKym,
-      opposerArgumentsKym: a.opposerArgumentsKym,
-    }, lng);
+    // Pass the database object directly
+    const translated = getTranslatedDebate(a, lng);
 
     return {
       id: a.id,

@@ -105,32 +105,8 @@ export const getStaticProps: GetStaticProps = async ({ params, locale }) => {
 
   // 2. Map DB fields (camelCase) to Component Props (snake_case) with translations
   const articles: Article[] = articlesData.map(a => {
-    const translated = getTranslatedDebate({
-      title: a.title,
-      summary: a.summary,
-      proposerName: a.proposerName,
-      proposerArguments: a.proposerArguments,
-      opposerName: a.opposerName,
-      opposerArguments: a.opposerArguments,
-      titleSw: a.titleSw,
-      summarySw: a.summarySw,
-      proposerNameSw: a.proposerNameSw,
-      proposerArgumentsSw: a.proposerArgumentsSw,
-      opposerNameSw: a.opposerNameSw,
-      opposerArgumentsSw: a.opposerArgumentsSw,
-      titleFr: a.titleFr,
-      summaryFr: a.summaryFr,
-      proposerNameFr: a.proposerNameFr,
-      proposerArgumentsFr: a.proposerArgumentsFr,
-      opposerNameFr: a.opposerNameFr,
-      opposerArgumentsFr: a.opposerArgumentsFr,
-      titleKym: a.titleKym,
-      summaryKym: a.summaryKym,
-      proposerNameKym: a.proposerNameKym,
-      proposerArgumentsKym: a.proposerArgumentsKym,
-      opposerNameKym: a.opposerNameKym,
-      opposerArgumentsKym: a.opposerArgumentsKym,
-    }, lng);
+    // Pass the database object directly
+    const translated = getTranslatedDebate(a, lng);
 
     return {
       id: a.id,

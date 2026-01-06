@@ -285,32 +285,8 @@ export const getServerSideProps: GetServerSideProps = async ({ params, locale })
     }
 
     // Get translated content based on language
-    const translated = getTranslatedDebate({
-      title: debateData.title,
-      summary: debateData.summary,
-      proposerName: debateData.proposerName,
-      proposerArguments: debateData.proposerArguments,
-      opposerName: debateData.opposerName,
-      opposerArguments: debateData.opposerArguments,
-      titleSw: debateData.titleSw,
-      summarySw: debateData.summarySw,
-      proposerNameSw: debateData.proposerNameSw,
-      proposerArgumentsSw: debateData.proposerArgumentsSw,
-      opposerNameSw: debateData.opposerNameSw,
-      opposerArgumentsSw: debateData.opposerArgumentsSw,
-      titleFr: debateData.titleFr,
-      summaryFr: debateData.summaryFr,
-      proposerNameFr: debateData.proposerNameFr,
-      proposerArgumentsFr: debateData.proposerArgumentsFr,
-      opposerNameFr: debateData.opposerNameFr,
-      opposerArgumentsFr: debateData.opposerArgumentsFr,
-      titleKym: debateData.titleKym,
-      summaryKym: debateData.summaryKym,
-      proposerNameKym: debateData.proposerNameKym,
-      proposerArgumentsKym: debateData.proposerArgumentsKym,
-      opposerNameKym: debateData.opposerNameKym,
-      opposerArgumentsKym: debateData.opposerArgumentsKym,
-    }, lng);
+    // Pass the database object directly since it contains all translation fields
+    const translated = getTranslatedDebate(debateData, lng);
 
     // Serialize dates with translated content
     const serializedDebate = {
@@ -341,32 +317,8 @@ export const getServerSideProps: GetServerSideProps = async ({ params, locale })
 
     // Get translated trending articles
     const trendingArticles = trendingArticlesData.map(a => {
-      const translatedTrending = getTranslatedDebate({
-        title: a.title,
-        summary: a.summary,
-        proposerName: a.proposerName,
-        proposerArguments: a.proposerArguments,
-        opposerName: a.opposerName,
-        opposerArguments: a.opposerArguments,
-        titleSw: a.titleSw,
-        summarySw: a.summarySw,
-        proposerNameSw: a.proposerNameSw,
-        proposerArgumentsSw: a.proposerArgumentsSw,
-        opposerNameSw: a.opposerNameSw,
-        opposerArgumentsSw: a.opposerArgumentsSw,
-        titleFr: a.titleFr,
-        summaryFr: a.summaryFr,
-        proposerNameFr: a.proposerNameFr,
-        proposerArgumentsFr: a.proposerArgumentsFr,
-        opposerNameFr: a.opposerNameFr,
-        opposerArgumentsFr: a.opposerArgumentsFr,
-        titleKym: a.titleKym,
-        summaryKym: a.summaryKym,
-        proposerNameKym: a.proposerNameKym,
-        proposerArgumentsKym: a.proposerArgumentsKym,
-        opposerNameKym: a.opposerNameKym,
-        opposerArgumentsKym: a.opposerArgumentsKym,
-      }, lng);
+      // Pass the database object directly
+      const translatedTrending = getTranslatedDebate(a, lng);
 
       return {
         id: a.id,

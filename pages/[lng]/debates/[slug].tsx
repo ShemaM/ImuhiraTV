@@ -13,6 +13,7 @@ import TrendingWidget from '../../../components/common/TrendingWidget';
 import Badge from '../../../components/common/Badge';
 import { db, debates } from '../../../db';
 import { eq, desc } from 'drizzle-orm';
+import { getTranslatedDebate } from '../../../lib/get-translated-content';
 
 // Types
 interface TrendingArticle {
@@ -283,23 +284,51 @@ export const getServerSideProps: GetServerSideProps = async ({ params, locale })
       };
     }
 
-    // Serialize dates
+    // Get translated content based on language
+    const translated = getTranslatedDebate({
+      title: debateData.title,
+      summary: debateData.summary,
+      proposerName: debateData.proposerName,
+      proposerArguments: debateData.proposerArguments,
+      opposerName: debateData.opposerName,
+      opposerArguments: debateData.opposerArguments,
+      titleSw: debateData.titleSw,
+      summarySw: debateData.summarySw,
+      proposerNameSw: debateData.proposerNameSw,
+      proposerArgumentsSw: debateData.proposerArgumentsSw,
+      opposerNameSw: debateData.opposerNameSw,
+      opposerArgumentsSw: debateData.opposerArgumentsSw,
+      titleFr: debateData.titleFr,
+      summaryFr: debateData.summaryFr,
+      proposerNameFr: debateData.proposerNameFr,
+      proposerArgumentsFr: debateData.proposerArgumentsFr,
+      opposerNameFr: debateData.opposerNameFr,
+      opposerArgumentsFr: debateData.opposerArgumentsFr,
+      titleKym: debateData.titleKym,
+      summaryKym: debateData.summaryKym,
+      proposerNameKym: debateData.proposerNameKym,
+      proposerArgumentsKym: debateData.proposerArgumentsKym,
+      opposerNameKym: debateData.opposerNameKym,
+      opposerArgumentsKym: debateData.opposerArgumentsKym,
+    }, lng);
+
+    // Serialize dates with translated content
     const serializedDebate = {
       id: debateData.id,
-      title: debateData.title,
+      title: translated.title,
       slug: debateData.slug || '',
       category: debateData.category || 'Politics', // Map category
-      summary: debateData.summary || '',
+      summary: translated.summary || '',
       youtubeVideoId: debateData.youtubeVideoId || null,
       mainImageUrl: debateData.mainImageUrl || null,
       authorName: 'Imuhira Staff',
       publishedAt: debateData.createdAt ? debateData.createdAt.toISOString() : null,
       
-      // 🟢 MAP NEW COLUMNS
-      proposerName: debateData.proposerName || 'Proposer',
-      proposerArguments: debateData.proposerArguments || '',
-      opposerName: debateData.opposerName || 'Opposer',
-      opposerArguments: debateData.opposerArguments || '',
+      // 🟢 MAP TRANSLATED COLUMNS
+      proposerName: translated.proposerName || 'Proposer',
+      proposerArguments: translated.proposerArguments || '',
+      opposerName: translated.opposerName || 'Opposer',
+      opposerArguments: translated.opposerArguments || '',
     };
 
     const trendingArticlesData = await db
@@ -310,19 +339,49 @@ export const getServerSideProps: GetServerSideProps = async ({ params, locale })
         .limit(5)
         .execute();
 
-    const trendingArticles = trendingArticlesData.map(a => ({
-        id: a.id,
+    // Get translated trending articles
+    const trendingArticles = trendingArticlesData.map(a => {
+      const translatedTrending = getTranslatedDebate({
         title: a.title,
+        summary: a.summary,
+        proposerName: a.proposerName,
+        proposerArguments: a.proposerArguments,
+        opposerName: a.opposerName,
+        opposerArguments: a.opposerArguments,
+        titleSw: a.titleSw,
+        summarySw: a.summarySw,
+        proposerNameSw: a.proposerNameSw,
+        proposerArgumentsSw: a.proposerArgumentsSw,
+        opposerNameSw: a.opposerNameSw,
+        opposerArgumentsSw: a.opposerArgumentsSw,
+        titleFr: a.titleFr,
+        summaryFr: a.summaryFr,
+        proposerNameFr: a.proposerNameFr,
+        proposerArgumentsFr: a.proposerArgumentsFr,
+        opposerNameFr: a.opposerNameFr,
+        opposerArgumentsFr: a.opposerArgumentsFr,
+        titleKym: a.titleKym,
+        summaryKym: a.summaryKym,
+        proposerNameKym: a.proposerNameKym,
+        proposerArgumentsKym: a.proposerArgumentsKym,
+        opposerNameKym: a.opposerNameKym,
+        opposerArgumentsKym: a.opposerArgumentsKym,
+      }, lng);
+
+      return {
+        id: a.id,
+        title: translatedTrending.title,
         slug: a.slug || '',
         category: {
             name: a.category || 'News',
             href: `/category/${(a.category || 'news').toLowerCase()}`
         },
         content: [],
-        excerpt: a.summary ? a.summary.slice(0, 100) + '...' : '',
+        excerpt: translatedTrending.summary ? translatedTrending.summary.slice(0, 100) + '...' : '',
         publishedAt: a.createdAt ? a.createdAt.toISOString() : null,
         createdAt: a.createdAt ? a.createdAt.toISOString() : null,
-    }));
+      };
+    });
 
     return {
       props: {

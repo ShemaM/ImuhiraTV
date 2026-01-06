@@ -5,16 +5,41 @@ import { relations } from 'drizzle-orm';
 // === DEBATES TABLE ===
 export const debates = pgTable('debates', {
   id: uuid('id').defaultRandom().primaryKey(),
+  
+  // Base Fields (Standard English)
   title: text('title').notNull(),
   category: text('category').notNull(), 
   summary: text('summary').notNull(), 
-  
   proposerName: text('proposer_name').notNull(),
   proposerArguments: text('proposer_arguments').notNull(),
-  
   opposerName: text('opposer_name').notNull(),
   opposerArguments: text('opposer_arguments').notNull(),
   
+  // Swahili (sw)
+  titleSw: text('title_sw'),
+  summarySw: text('summary_sw'),
+  proposerNameSw: text('proposer_name_sw'),
+  proposerArgumentsSw: text('proposer_arguments_sw'),
+  opposerNameSw: text('opposer_name_sw'),
+  opposerArgumentsSw: text('opposer_arguments_sw'),
+
+  // French (fr)
+  titleFr: text('title_fr'),
+  summaryFr: text('summary_fr'),
+  proposerNameFr: text('proposer_name_fr'),
+  proposerArgumentsFr: text('proposer_arguments_fr'),
+  opposerNameFr: text('opposer_name_fr'),
+  opposerArgumentsFr: text('opposer_arguments_fr'),
+
+  // Kinyamulenge (ki)
+  titleKym: text('title_kym'),
+  summaryKym: text('summary_kym'),
+  proposerNameKym: text('proposer_name_kym'),
+  proposerArgumentsKym: text('proposer_arguments_kym'),
+  opposerNameKym: text('opposer_name_kym'),
+  opposerArgumentsKym: text('opposer_arguments_kym'),
+  
+  // Shared Media & Metadata
   youtubeVideoId: text('youtube_video_id'),
   mainImageUrl: text('main_image_url'),
   

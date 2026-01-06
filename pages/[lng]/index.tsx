@@ -13,6 +13,7 @@ import { languages } from '../../i18n/settings';
 import { db } from '../../db';
 import { debates, articles } from '../../db/schema';
 import { desc, eq } from 'drizzle-orm';
+import { getTranslatedArticle, getTranslatedDebate } from '../../lib/get-translated-content';
 // We define the interface locally to ensure it matches the mapping below exactly
 interface ArticleUI {
   id: string;
@@ -116,6 +117,8 @@ export const getStaticPaths: GetStaticPaths = async () => {
 };
 
 export const getStaticProps: GetStaticProps = async ({ params }) => {
+  const lng = params?.lng as string || 'en';
+
   // Fetch published debates
   const debatesRaw = await db
     .select()
@@ -132,41 +135,87 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
     .orderBy(desc(articles.createdAt))
     .execute();
 
-  // Map debates to ArticleUI format
-  const debatesFormatted: ArticleWithRawDate[] = debatesRaw.map(a => ({
-    id: a.id,
-    title: a.title,
-    slug: a.slug || '',
-    excerpt: a.summary ? a.summary.replace(/<[^>]+>/g, '').slice(0, 150) + '...' : '',
-    main_image_url: a.mainImageUrl || '/images/placeholder.jpg',
-    published_at: a.createdAt 
-      ? new Date(a.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) 
-      : '',
-    author_name: 'Imuhira Staff',
-    category: { 
-      name: a.category || 'Politics', 
-      slug: (a.category || 'politics').toLowerCase() 
-    },
-    createdAtRaw: a.createdAt,
-  }));
+  // Map debates to ArticleUI format with translations
+  const debatesFormatted: ArticleWithRawDate[] = debatesRaw.map(a => {
+    const translated = getTranslatedDebate({
+      title: a.title,
+      summary: a.summary,
+      proposerName: a.proposerName,
+      proposerArguments: a.proposerArguments,
+      opposerName: a.opposerName,
+      opposerArguments: a.opposerArguments,
+      titleSw: a.titleSw,
+      summarySw: a.summarySw,
+      proposerNameSw: a.proposerNameSw,
+      proposerArgumentsSw: a.proposerArgumentsSw,
+      opposerNameSw: a.opposerNameSw,
+      opposerArgumentsSw: a.opposerArgumentsSw,
+      titleFr: a.titleFr,
+      summaryFr: a.summaryFr,
+      proposerNameFr: a.proposerNameFr,
+      proposerArgumentsFr: a.proposerArgumentsFr,
+      opposerNameFr: a.opposerNameFr,
+      opposerArgumentsFr: a.opposerArgumentsFr,
+      titleKym: a.titleKym,
+      summaryKym: a.summaryKym,
+      proposerNameKym: a.proposerNameKym,
+      proposerArgumentsKym: a.proposerArgumentsKym,
+      opposerNameKym: a.opposerNameKym,
+      opposerArgumentsKym: a.opposerArgumentsKym,
+    }, lng);
 
-  // Map articles to ArticleUI format
-  const articlesFormatted: ArticleWithRawDate[] = articlesRaw.map(a => ({
-    id: a.id,
-    title: a.title,
-    slug: a.slug || '',
-    excerpt: a.excerpt || (a.content ? a.content.replace(/<[^>]+>/g, '').slice(0, 150) + '...' : ''),
-    main_image_url: a.coverImage || '/images/placeholder.jpg',
-    published_at: a.createdAt 
-      ? new Date(a.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) 
-      : '',
-    author_name: 'Imuhira Staff',
-    category: { 
-      name: 'News', 
-      slug: 'news' 
-    },
-    createdAtRaw: a.createdAt,
-  }));
+    return {
+      id: a.id,
+      title: translated.title,
+      slug: a.slug || '',
+      excerpt: translated.summary ? translated.summary.replace(/<[^>]+>/g, '').slice(0, 150) + '...' : '',
+      main_image_url: a.mainImageUrl || '/images/placeholder.jpg',
+      published_at: a.createdAt 
+        ? new Date(a.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) 
+        : '',
+      author_name: 'Imuhira Staff',
+      category: { 
+        name: a.category || 'Politics', 
+        slug: (a.category || 'politics').toLowerCase() 
+      },
+      createdAtRaw: a.createdAt,
+    };
+  });
+
+  // Map articles to ArticleUI format with translations
+  const articlesFormatted: ArticleWithRawDate[] = articlesRaw.map(a => {
+    const translated = getTranslatedArticle({
+      title: a.title,
+      excerpt: a.excerpt,
+      content: a.content,
+      titleSw: a.titleSw,
+      excerptSw: a.excerptSw,
+      contentSw: a.contentSw,
+      titleFr: a.titleFr,
+      excerptFr: a.excerptFr,
+      contentFr: a.contentFr,
+      titleKym: a.titleKym,
+      excerptKym: a.excerptKym,
+      contentKym: a.contentKym,
+    }, lng);
+
+    return {
+      id: a.id,
+      title: translated.title,
+      slug: a.slug || '',
+      excerpt: translated.excerpt || (translated.content ? translated.content.replace(/<[^>]+>/g, '').slice(0, 150) + '...' : ''),
+      main_image_url: a.coverImage || '/images/placeholder.jpg',
+      published_at: a.createdAt 
+        ? new Date(a.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) 
+        : '',
+      author_name: 'Imuhira Staff',
+      category: { 
+        name: 'News', 
+        slug: 'news' 
+      },
+      createdAtRaw: a.createdAt,
+    };
+  });
 
   // Combine and sort by creation date (newest first)
   const allArticles: ArticleUI[] = [...debatesFormatted, ...articlesFormatted]
@@ -183,8 +232,8 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
 
   return {
     props: {
-      lng: params?.lng || 'en',
-      ...(await serverSideTranslations(params?.lng as string || 'en', ['common', 'articles'])),
+      lng,
+      ...(await serverSideTranslations(lng, ['common', 'articles'])),
       featuredArticle,
       latestArticles,
       trendingArticles,

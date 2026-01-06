@@ -25,8 +25,8 @@ const extractYouTubeVideoId = (url: string): string | null => {
   // - https://www.youtube.com/embed/VIDEO_ID
   // - https://www.youtube.com/v/VIDEO_ID
   const patterns = [
-    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/v\/)([a-zA-Z0-9_-]{11})/,
-    /^([a-zA-Z0-9_-]{11})$/ // Just the video ID itself
+    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/v\/)([a-zA-Z0-9_-]{11,})/,
+    /^([a-zA-Z0-9_-]{11,})$/ // Just the video ID itself
   ];
   
   for (const pattern of patterns) {

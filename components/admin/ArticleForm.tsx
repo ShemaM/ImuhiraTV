@@ -15,6 +15,28 @@ interface ArticleData {
   isPublished: boolean;
 }
 
+// --- Helper: Extract YouTube Video ID from URL ---
+const extractYouTubeVideoId = (url: string): string | null => {
+  if (!url) return null;
+  
+  // Handle various YouTube URL formats:
+  // - https://www.youtube.com/watch?v=VIDEO_ID
+  // - https://youtu.be/VIDEO_ID
+  // - https://www.youtube.com/embed/VIDEO_ID
+  // - https://www.youtube.com/v/VIDEO_ID
+  const patterns = [
+    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/v\/)([a-zA-Z0-9_-]{11})/,
+    /^([a-zA-Z0-9_-]{11})$/ // Just the video ID itself
+  ];
+  
+  for (const pattern of patterns) {
+    const match = url.match(pattern);
+    if (match) return match[1];
+  }
+  
+  return null;
+};
+
 // --- Sub-Component: Toolbar for Rich Text ---
 const MenuBar = ({ editor }: { editor: Editor | null }) => {
   if (!editor) return null;
@@ -74,6 +96,20 @@ export default function ArticleForm() {
       .replace(/(^-|-$)+/g, '');
     
     setFormData((prev) => ({ ...prev, title, slug }));
+  };
+
+  // Auto-populate cover image from YouTube thumbnail when video URL changes
+  const handleVideoUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const videoUrl = e.target.value;
+    const videoId = extractYouTubeVideoId(videoUrl);
+    
+    if (videoId) {
+      // Set the cover image to the YouTube video thumbnail
+      const thumbnailUrl = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
+      setFormData((prev) => ({ ...prev, videoUrl, coverImage: thumbnailUrl }));
+    } else {
+      setFormData((prev) => ({ ...prev, videoUrl }));
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -168,7 +204,7 @@ export default function ArticleForm() {
                placeholder="https://youtu.be/..."
                className="w-full text-sm border border-slate-300 rounded px-3 py-2 outline-none focus:border-indigo-500"
                value={formData.videoUrl}
-               onChange={(e) => setFormData({...formData, videoUrl: e.target.value})}
+               onChange={handleVideoUrlChange}
             />
             <p className="text-xs text-slate-400 mt-2">
               Paste the full YouTube URL to feature it at the top of the post.

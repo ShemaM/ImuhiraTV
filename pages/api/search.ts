@@ -25,8 +25,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const articles = results.map(a => ({
         ...a,
         category: {
-          name: a.topic,
-          href: `/category/${a.topic.toLowerCase()}`,
+          name: a.category,
+          href: `/category/${a.category.toLowerCase()}`,
         },
         content: a.summary ? a.summary.split('\n') : [],
         excerpt: a.summary ? a.summary.slice(0, 150) : '',

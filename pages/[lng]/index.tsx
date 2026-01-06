@@ -11,7 +11,7 @@ import TrendingWidget from '../../components/common/TrendingWidget';
 import Layout from '../../components/layouts/Layout';
 import { languages } from '../../i18n/settings';
 import { db } from '../../db';
-import { debates } from '../../db/schema';
+import { debates, articles } from '../../db/schema';
 import { desc, eq } from 'drizzle-orm';
 // We define the interface locally to ensure it matches the mapping below exactly
 interface ArticleUI {
@@ -23,6 +23,11 @@ interface ArticleUI {
   published_at: string;
   author_name: string;
   category: { name: string; slug?: string };
+}
+
+// Internal type for sorting with raw date
+interface ArticleWithRawDate extends ArticleUI {
+  createdAtRaw: Date | null;
 }
 
 interface HomeProps {
@@ -111,40 +116,66 @@ export const getStaticPaths: GetStaticPaths = async () => {
 };
 
 export const getStaticProps: GetStaticProps = async ({ params }) => {
-  // 🟢 FIX 1: Sort by 'createdAt' (new schema), not 'publishedAt' (deleted)
-  const allArticlesRaw = await db
+  // Fetch published debates
+  const debatesRaw = await db
     .select()
     .from(debates)
-    .where(eq(debates.isPublished, true)) // Optional: Only show published items
+    .where(eq(debates.isPublished, true))
     .orderBy(desc(debates.createdAt))
     .execute();
 
-  // 🟢 FIX 2: Manually map DB fields (camelCase) to UI fields (snake_case)
-  // This prevents the UI from crashing when looking for undefined properties.
-  const allArticles: ArticleUI[] = allArticlesRaw.map(a => ({
+  // Fetch published articles from the articles table
+  const articlesRaw = await db
+    .select()
+    .from(articles)
+    .where(eq(articles.isPublished, true))
+    .orderBy(desc(articles.createdAt))
+    .execute();
+
+  // Map debates to ArticleUI format
+  const debatesFormatted: ArticleWithRawDate[] = debatesRaw.map(a => ({
     id: a.id,
     title: a.title,
     slug: a.slug || '',
-    
-    // Map 'summary' -> 'excerpt'
     excerpt: a.summary ? a.summary.replace(/<[^>]+>/g, '').slice(0, 150) + '...' : '',
-    
-    // Map 'mainImageUrl' -> 'main_image_url'
     main_image_url: a.mainImageUrl || '/images/placeholder.jpg',
-    
-    // Map 'createdAt' -> 'published_at'
     published_at: a.createdAt 
       ? new Date(a.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) 
       : '',
-      
-    author_name: 'Imuhira Staff', // Default value since we don't have an author column yet
-    
-    // Map string category -> object category
+    author_name: 'Imuhira Staff',
     category: { 
       name: a.category || 'Politics', 
       slug: (a.category || 'politics').toLowerCase() 
-    }
+    },
+    createdAtRaw: a.createdAt,
   }));
+
+  // Map articles to ArticleUI format
+  const articlesFormatted: ArticleWithRawDate[] = articlesRaw.map(a => ({
+    id: a.id,
+    title: a.title,
+    slug: a.slug || '',
+    excerpt: a.excerpt || (a.content ? a.content.replace(/<[^>]+>/g, '').slice(0, 150) + '...' : ''),
+    main_image_url: a.coverImage || '/images/placeholder.jpg',
+    published_at: a.createdAt 
+      ? new Date(a.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) 
+      : '',
+    author_name: 'Imuhira Staff',
+    category: { 
+      name: 'News', 
+      slug: 'news' 
+    },
+    createdAtRaw: a.createdAt,
+  }));
+
+  // Combine and sort by creation date (newest first)
+  const allArticles: ArticleUI[] = [...debatesFormatted, ...articlesFormatted]
+    .sort((a, b) => {
+      const dateA = a.createdAtRaw ? new Date(a.createdAtRaw).getTime() : 0;
+      const dateB = b.createdAtRaw ? new Date(b.createdAtRaw).getTime() : 0;
+      return dateB - dateA;
+    })
+    .map(({ createdAtRaw, ...rest }) => rest); // Remove the temporary sorting field
 
   const featuredArticle = allArticles[0] || null;
   const latestArticles = allArticles.slice(1, 5);

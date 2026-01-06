@@ -1,9 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { db } from '../../../db';
 import { debates, articles, comments } from '../../../db/schema';
-import { count, eq, desc } from 'drizzle-orm';
+import { count, eq, desc, or, isNull } from 'drizzle-orm';
 
-interface Stats {
+interface StatsResponse {
   totalDebates: number;
   totalArticles: number;
   totalComments: number;
@@ -15,27 +15,27 @@ interface Stats {
     title: string;
     slug: string | null;
     isPublished: boolean | null;
-    createdAt: Date | null;
+    createdAt: string | null;
   }>;
   recentArticles: Array<{
     id: string;
     title: string;
     slug: string;
     isPublished: boolean | null;
-    createdAt: Date | null;
+    createdAt: string | null;
   }>;
   recentComments: Array<{
     id: string;
     authorName: string;
     content: string;
     isApproved: boolean | null;
-    createdAt: Date | null;
+    createdAt: string | null;
   }>;
 }
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<Stats | { error: string }>
+  res: NextApiResponse<StatsResponse | { error: string }>
 ) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -58,14 +58,14 @@ export default async function handler(
       .from(articles)
       .where(eq(articles.isPublished, true));
 
-    // Get pending (not approved) comments count
+    // Get pending (not approved) comments count - includes false and null values
     const [pendingCommentCount] = await db
       .select({ count: count() })
       .from(comments)
-      .where(eq(comments.isApproved, false));
+      .where(or(eq(comments.isApproved, false), isNull(comments.isApproved)));
 
     // Get recent debates
-    const recentDebates = await db
+    const recentDebatesRaw = await db
       .select({
         id: debates.id,
         title: debates.title,
@@ -78,7 +78,7 @@ export default async function handler(
       .limit(5);
 
     // Get recent articles
-    const recentArticles = await db
+    const recentArticlesRaw = await db
       .select({
         id: articles.id,
         title: articles.title,
@@ -91,7 +91,7 @@ export default async function handler(
       .limit(5);
 
     // Get recent comments
-    const recentComments = await db
+    const recentCommentsRaw = await db
       .select({
         id: comments.id,
         authorName: comments.authorName,
@@ -103,16 +103,26 @@ export default async function handler(
       .orderBy(desc(comments.createdAt))
       .limit(5);
 
-    const stats: Stats = {
+    // Serialize dates to ISO strings for consistent JSON response
+    const stats: StatsResponse = {
       totalDebates: debateCount.count,
       totalArticles: articleCount.count,
       totalComments: commentCount.count,
       publishedDebates: publishedDebateCount.count,
       publishedArticles: publishedArticleCount.count,
       pendingComments: pendingCommentCount.count,
-      recentDebates,
-      recentArticles,
-      recentComments,
+      recentDebates: recentDebatesRaw.map(d => ({
+        ...d,
+        createdAt: d.createdAt?.toISOString() ?? null,
+      })),
+      recentArticles: recentArticlesRaw.map(a => ({
+        ...a,
+        createdAt: a.createdAt?.toISOString() ?? null,
+      })),
+      recentComments: recentCommentsRaw.map(c => ({
+        ...c,
+        createdAt: c.createdAt?.toISOString() ?? null,
+      })),
     };
 
     return res.status(200).json(stats);

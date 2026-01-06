@@ -2,6 +2,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import Badge from './Badge';
+import { useTranslation } from 'next-i18next';
 
 interface HeroArticleProps {
   article: {
@@ -18,9 +19,22 @@ interface HeroArticleProps {
 }
 
 export default function HeroArticle({ article, lng }: HeroArticleProps) {
+  const { t } = useTranslation(['articles', 'common']);
+  
   // STEP 2 FIX: Consistent Link Construction
   // We prioritize the constructed slug URL to ensure it matches the file structure
   const validUrl = article.slug ? `/${lng}/articles/${article.slug}` : '#';
+
+  // Try to get translated title and excerpt from articles.json using slug as key
+  // If translation exists, use it; otherwise fall back to database values
+  const translatedTitle = t(`${article.slug}.title`, { ns: 'articles', defaultValue: '' });
+  const translatedExcerpt = t(`${article.slug}.excerpt`, { ns: 'articles', defaultValue: '' });
+  
+  const displayTitle = translatedTitle && translatedTitle !== `${article.slug}.title` ? translatedTitle : article.title;
+  const displayExcerpt = translatedExcerpt && translatedExcerpt !== `${article.slug}.excerpt` ? translatedExcerpt : article.excerpt;
+
+  // Translate category name
+  const translatedCategory = t(article.category?.name || 'News', { ns: 'common' });
 
   return (
     <section className="mb-12 border-b border-slate-200 pb-12">
@@ -31,13 +45,13 @@ export default function HeroArticle({ article, lng }: HeroArticleProps) {
           <Link href={validUrl} className="group block relative h-[300px] md:h-[450px] overflow-hidden rounded-sm">
             <Image 
               src={article.main_image_url} 
-              alt={article.title}
+              alt={displayTitle}
               fill
               className="object-cover transition-transform duration-700 group-hover:scale-105"
               unoptimized 
             />
             <div className="absolute bottom-0 left-0 bg-red-700 text-white text-[10px] md:text-xs font-bold px-3 py-1.5 uppercase tracking-widest">
-              Breaking Analysis
+              {t('Featured Article', { ns: 'common' })}
             </div>
           </Link>
         </div>
@@ -45,17 +59,17 @@ export default function HeroArticle({ article, lng }: HeroArticleProps) {
         {/* 2. TEXT COLUMN */}
         <div className="lg:col-span-4 flex flex-col justify-center">
           <div className="mb-4">
-             <Badge label={article.category?.name || 'News'} />
+             <Badge label={translatedCategory} />
           </div>
 
           <Link href={validUrl} className="group block mb-4">
             <h1 className="text-3xl lg:text-4xl/tight font-serif font-bold text-slate-900 group-hover:text-red-700 transition-colors">
-              {article.title}
+              {displayTitle}
             </h1>
           </Link>
 
           <p className="text-slate-600 text-base md:text-lg leading-relaxed mb-6 line-clamp-4">
-            {article.excerpt}
+            {displayExcerpt}
           </p>
 
           <div className="mt-auto pt-4 border-t border-slate-100 flex items-center text-xs font-bold uppercase tracking-wider text-slate-500 font-sans">

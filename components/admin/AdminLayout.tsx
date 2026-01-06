@@ -7,7 +7,8 @@ import {
   UsersIcon, 
   Cog6ToothIcon, 
   ArrowLeftOnRectangleIcon,
-  ScaleIcon 
+  ScaleIcon,
+  ChatBubbleLeftRightIcon
 } from '@heroicons/react/24/outline';
 
 interface AdminLayoutProps {
@@ -51,6 +52,10 @@ export default function AdminLayout({ children, title }: AdminLayoutProps) {
           <Link href="/admin/posts" className={linkClass('/admin/posts')}>
             <DocumentTextIcon className="h-6 w-6" />
             <span className="font-medium">Articles</span>
+          </Link>
+          <Link href="/admin/comments" className={linkClass('/admin/comments')}>
+            <ChatBubbleLeftRightIcon className="h-6 w-6" />
+            <span className="font-medium">Comments</span>
           </Link>
           <Link href="/admin/users" className={linkClass('/admin/users')}>
             <UsersIcon className="h-6 w-6" />

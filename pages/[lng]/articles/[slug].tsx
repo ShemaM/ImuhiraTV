@@ -15,7 +15,7 @@ import TrendingWidget from '../../../components/common/TrendingWidget';
 import Badge from '../../../components/common/Badge';
 import { languages } from '../../../i18n/settings';
 import { db } from '../../../db';
-import { debates } from '../../../db/schema';
+import { debates, articles } from '../../../db/schema';
 import { desc, eq } from 'drizzle-orm';
 
 // Types
@@ -36,10 +36,10 @@ interface Article {
   youtubeVideoId?: string | null;
   content: string; 
   // 🟢 UPDATED: Arguments are now HTML strings (Rich Text), not arrays
-  faction1Label?: string;
-  faction2Label?: string;
-  faction1Arguments?: string; 
-  faction2Arguments?: string;
+  faction1Label?: string | null;
+  faction2Label?: string | null;
+  faction1Arguments?: string | null; 
+  faction2Arguments?: string | null;
 }
 
 interface PageProps {
@@ -253,12 +253,18 @@ export default function ArticlePage({ article, trendingArticles }: PageProps) {
 // === DATA FETCHING ===
 
 export const getStaticPaths: GetStaticPaths = async () => {
-  const allArticles = await db.select({ slug: debates.slug }).from(debates);
+  // Get slugs from both debates and articles tables
+  const debatesData = await db.select({ slug: debates.slug }).from(debates);
+  const articlesData = await db.select({ slug: articles.slug }).from(articles);
+  
+  const allSlugs = [
+    ...debatesData.filter(d => d.slug !== null).map(d => d.slug as string),
+    ...articlesData.filter(a => a.slug !== null).map(a => a.slug as string),
+  ];
+  
   const langs = languages || ['en'];
   const paths = langs.flatMap(lng => 
-    allArticles
-      .filter(article => article.slug !== null)
-      .map(article => ({ params: { lng, slug: article.slug as string } }))
+    allSlugs.map(slug => ({ params: { lng, slug } }))
   );
   return { paths, fallback: true };
 };
@@ -266,11 +272,81 @@ export const getStaticPaths: GetStaticPaths = async () => {
 export const getStaticProps: GetStaticProps = async ({ params, locale }) => {
   const slug = params?.slug as string;
   
-  const articleData = await db.query.debates.findFirst({
-    where: eq(debates.slug, slug),
+  const formatDate = (date: Date | null) => {
+    if (!date) return '';
+    return new Intl.DateTimeFormat('en-GB', { 
+        day: 'numeric', month: 'long', year: 'numeric' 
+    }).format(new Date(date));
+  };
+
+  // First, try to find in the articles table (only published articles)
+  const articleFromArticles = await db.query.articles.findFirst({
+    where: (articles, { and, eq }) => and(
+      eq(articles.slug, slug),
+      eq(articles.isPublished, true)
+    ),
   });
 
-  if (!articleData) {
+  let article: Article | null = null;
+
+  if (articleFromArticles) {
+    // Map from articles table
+    article = {
+      id: articleFromArticles.id,
+      title: articleFromArticles.title,
+      slug: articleFromArticles.slug || '',
+      mainImageUrl: articleFromArticles.coverImage || '',
+      authorName: 'Imuhira Staff',
+      publishedAt: formatDate(articleFromArticles.createdAt),
+      youtubeVideoId: articleFromArticles.videoUrl || null,
+      category: {
+        name: 'News',
+        href: `/category/news`,
+      },
+      content: articleFromArticles.content || '',
+      excerpt: articleFromArticles.excerpt ||
+        (articleFromArticles.content
+          ? articleFromArticles.content.replace(/<[^>]+>/g, '').slice(0, 150) + '...'
+          : ''),
+      // Articles don't have faction arguments
+      faction1Label: null,
+      faction2Label: null,
+      faction1Arguments: null,
+      faction2Arguments: null,
+    };
+  } else {
+    // Fallback to debates table
+    const articleFromDebates = await db.query.debates.findFirst({
+      where: eq(debates.slug, slug),
+    });
+
+    if (articleFromDebates) {
+      article = {
+        id: articleFromDebates.id,
+        title: articleFromDebates.title,
+        slug: articleFromDebates.slug || '',
+        mainImageUrl: articleFromDebates.mainImageUrl || '',
+        authorName: 'Imuhira Staff',
+        publishedAt: formatDate(articleFromDebates.createdAt),
+        youtubeVideoId: articleFromDebates.youtubeVideoId || null,
+        category: {
+          name: articleFromDebates.category || 'Politics',
+          href: `/category/${(articleFromDebates.category || 'politics').toLowerCase()}`,
+        },
+        content: articleFromDebates.summary || '',
+        excerpt: articleFromDebates.summary
+          ? articleFromDebates.summary.replace(/<[^>]+>/g, '').slice(0, 150) + '...'
+          : '',
+        // Rich Text Mapping: Pass raw HTML strings directly
+        faction1Label: articleFromDebates.proposerName || 'Group A',
+        faction2Label: articleFromDebates.opposerName || 'Group B',
+        faction1Arguments: articleFromDebates.proposerArguments,
+        faction2Arguments: articleFromDebates.opposerArguments,
+      };
+    }
+  }
+
+  if (!article) {
     return { notFound: true };
   }
 
@@ -279,40 +355,6 @@ export const getStaticProps: GetStaticProps = async ({ params, locale }) => {
     .from(debates)
     .orderBy(desc(debates.createdAt))
     .limit(5);
-
-  const formatDate = (date: Date | null) => {
-    if (!date) return '';
-    return new Intl.DateTimeFormat('en-GB', { 
-        day: 'numeric', month: 'long', year: 'numeric' 
-    }).format(new Date(date));
-  };
-
-  // 🟢 DATA MAPPING:
-  const article: Article = {
-    id: articleData.id,
-    title: articleData.title,
-    slug: articleData.slug || '',
-    mainImageUrl: articleData.mainImageUrl || '', 
-    authorName: 'Imuhira Staff', 
-    publishedAt: formatDate(articleData.createdAt),
-    youtubeVideoId: articleData.youtubeVideoId || null,
-    
-    category: {
-      name: articleData.category || 'Politics', 
-      href: `/category/${(articleData.category || 'politics').toLowerCase()}`,
-    },
-    
-    content: articleData.summary || '',
-    excerpt: articleData.summary 
-      ? articleData.summary.replace(/<[^>]+>/g, '').slice(0, 150) + '...' 
-      : '',
-    
-    // 🟢 Rich Text Mapping: Pass raw HTML strings directly
-    faction1Label: articleData.proposerName || 'Group A',
-    faction2Label: articleData.opposerName || 'Group B',
-    faction1Arguments: articleData.proposerArguments,
-    faction2Arguments: articleData.opposerArguments,
-  };
 
   const trendingArticles = trendingData.map(a => ({
       id: a.id,

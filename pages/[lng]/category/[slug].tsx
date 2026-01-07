@@ -6,7 +6,6 @@ import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import Layout from '../../../components/layouts/Layout';
 import ArticleCard from '../../../components/common/ArticleCard';
 import { useRouter } from 'next/router';
-import { languages } from '../../../i18n/settings';
 import { db } from '../../../db';
 import { debates } from '../../../db/schema';
 import { eq } from 'drizzle-orm';

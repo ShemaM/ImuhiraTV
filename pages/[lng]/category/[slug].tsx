@@ -128,7 +128,7 @@ export const getStaticProps: GetStaticProps = async ({ params, locale }) => {
 
   // Get category description - always available even without database
   const categoryDescription = CATEGORY_DESCRIPTIONS[slugLower] || null;
-  const category = { name: slug, href: `/category/${slug}` };
+  const category = { name: slug, href: `/${currentLng}/category/${slug}` };
 
   // If no valid category description exists for unknown slugs, return 404
   const validCategories = Object.keys(CATEGORY_DESCRIPTIONS);
@@ -173,7 +173,7 @@ export const getStaticProps: GetStaticProps = async ({ params, locale }) => {
       author_name: 'Imuhira Staff',
       category: {
         name: a.category || slug,
-        href: `/category/${(a.category || slug).toLowerCase()}`,
+        href: `/${currentLng}/category/${(a.category || slug).toLowerCase()}`,
         slug: (a.category || slug).toLowerCase()
       },
     }));

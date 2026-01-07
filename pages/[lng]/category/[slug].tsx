@@ -125,9 +125,27 @@ export const getStaticProps: GetStaticProps = async ({ params, locale }) => {
   const slug = (params?.slug as string) || '';
   const currentLng = (params?.lng as string) || (locale as string) || 'en';
 
-  // Safety check: if DB didn't initialize, return notFound rather than crashing
-  if (!db) {
+  // Get category description - always available even without database
+  const categoryDescription = CATEGORY_DESCRIPTIONS[slug.toLowerCase()] || null;
+  const category = { name: slug, href: `/category/${slug}` };
+
+  // If no valid category description exists for unknown slugs, return 404
+  if (!categoryDescription && !['history', 'culture', 'conflict', 'politics', 'stories'].includes(slug.toLowerCase())) {
     return { notFound: true };
+  }
+
+  // Safety check: if DB didn't initialize, return empty articles with category description
+  if (!db) {
+    return {
+      props: {
+        articles: [],
+        category,
+        categoryDescription,
+        lng: currentLng,
+        ...(await serverSideTranslations(currentLng, ['common'])),
+      },
+      revalidate: 60,
+    };
   }
 
   try {
@@ -158,11 +176,6 @@ export const getStaticProps: GetStaticProps = async ({ params, locale }) => {
       },
     }));
 
-    const category = { name: slug, href: `/category/${slug}` };
-    
-    // Get category description for empty categories
-    const categoryDescription = CATEGORY_DESCRIPTIONS[slug.toLowerCase()] || null;
-
     return {
       props: {
         articles,
@@ -175,7 +188,16 @@ export const getStaticProps: GetStaticProps = async ({ params, locale }) => {
     };
   } catch (error) {
     console.error("Database fetch error in category page:", error);
-    // Return empty state or 404 if DB is down
-    return { notFound: true };
+    // Return empty articles with category description if DB is down
+    return {
+      props: {
+        articles: [],
+        category,
+        categoryDescription,
+        lng: currentLng,
+        ...(await serverSideTranslations(currentLng, ['common'])),
+      },
+      revalidate: 60,
+    };
   }
 };

@@ -123,14 +123,16 @@ export const getStaticPaths: GetStaticPaths = async () => {
 
 export const getStaticProps: GetStaticProps = async ({ params, locale }) => {
   const slug = (params?.slug as string) || '';
+  const slugLower = slug.toLowerCase();
   const currentLng = (params?.lng as string) || (locale as string) || 'en';
 
   // Get category description - always available even without database
-  const categoryDescription = CATEGORY_DESCRIPTIONS[slug.toLowerCase()] || null;
+  const categoryDescription = CATEGORY_DESCRIPTIONS[slugLower] || null;
   const category = { name: slug, href: `/category/${slug}` };
 
   // If no valid category description exists for unknown slugs, return 404
-  if (!categoryDescription && !['history', 'culture', 'conflict', 'politics', 'stories'].includes(slug.toLowerCase())) {
+  const validCategories = Object.keys(CATEGORY_DESCRIPTIONS);
+  if (!categoryDescription && !validCategories.includes(slugLower)) {
     return { notFound: true };
   }
 

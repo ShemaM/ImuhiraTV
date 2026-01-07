@@ -325,7 +325,7 @@ export const getServerSideProps: GetServerSideProps = async ({ params, locale })
         slug: a.slug || '',
         category: {
             name: a.category || 'News',
-            href: `/category/${(a.category || 'news').toLowerCase()}`
+            href: `/${lng}/category/${(a.category || 'news').toLowerCase()}`
         },
         content: [],
         excerpt: a.summary ? a.summary.slice(0, 100) + '...' : '',

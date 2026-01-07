@@ -222,7 +222,7 @@ export const getStaticProps: GetStaticProps = async ({ params, locale }) => {
         authorName: 'Imuhira Staff',
         publishedAt: formatDate(articleFromArticles.createdAt),
         youtubeVideoId: validatedVideoId,
-        category: { name: 'News', href: `/category/news` },
+        category: { name: 'News', href: `/${currentLocale}/category/news` },
         content: articleFromArticles.content || '',
         excerpt: articleFromArticles.excerpt || (articleFromArticles.content?.replace(/<[^>]+>/g, '').slice(0, 150) + '...'),
       };
@@ -253,7 +253,7 @@ export const getStaticProps: GetStaticProps = async ({ params, locale }) => {
           youtubeVideoId: validatedYoutubeVideoId,
           category: {
             name: articleFromDebates.category || 'Politics',
-            href: `/category/${(articleFromDebates.category || 'politics').toLowerCase()}`,
+            href: `/${currentLocale}/category/${(articleFromDebates.category || 'politics').toLowerCase()}`,
           },
           content: articleFromDebates.summary || '',
           excerpt: articleFromDebates.summary?.replace(/<[^>]+>/g, '').slice(0, 150) + '...',
@@ -275,7 +275,7 @@ export const getStaticProps: GetStaticProps = async ({ params, locale }) => {
         slug: a.slug || '',
         mainImageUrl: a.mainImageUrl || '',
         publishedAt: formatDate(a.createdAt),
-        category: { name: a.category || 'News', href: `/category/news` },
+        category: { name: a.category || 'News', href: `/${currentLocale}/category/news` },
     }));
 
     return {

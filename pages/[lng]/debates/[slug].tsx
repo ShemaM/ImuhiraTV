@@ -13,6 +13,7 @@ import TrendingWidget from '../../../components/common/TrendingWidget';
 import Badge from '../../../components/common/Badge';
 import { db, debates } from '../../../db';
 import { eq, desc } from 'drizzle-orm';
+import { isValidYouTubeVideoId, isValidImageUrl } from '../../../lib/url-validation';
 
 // Types
 interface TrendingArticle {
@@ -283,15 +284,23 @@ export const getServerSideProps: GetServerSideProps = async ({ params, locale })
       };
     }
 
-    // Serialize dates
+    // Serialize dates and validate URLs for security
+    // Only use URLs that pass validation to prevent SSRF
+    const validatedYoutubeVideoId = isValidYouTubeVideoId(debateData.youtubeVideoId) 
+      ? debateData.youtubeVideoId 
+      : null;
+    const validatedMainImageUrl = isValidImageUrl(debateData.mainImageUrl) 
+      ? debateData.mainImageUrl 
+      : null;
+
     const serializedDebate = {
       id: debateData.id,
       title: debateData.title,
       slug: debateData.slug || '',
       category: debateData.category || 'Politics', // Map category
       summary: debateData.summary || '',
-      youtubeVideoId: debateData.youtubeVideoId || null,
-      mainImageUrl: debateData.mainImageUrl || null,
+      youtubeVideoId: validatedYoutubeVideoId,
+      mainImageUrl: validatedMainImageUrl,
       authorName: 'Imuhira Staff',
       publishedAt: debateData.createdAt ? debateData.createdAt.toISOString() : null,
       

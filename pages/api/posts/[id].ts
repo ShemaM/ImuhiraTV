@@ -4,6 +4,12 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { db } from '../../../db';
 import { articles } from '../../../db/schema';
 import { eq } from 'drizzle-orm';
+import { 
+  isValidImageUrl, 
+  isValidVideoUrl, 
+  getAllowedImageHostnames,
+  getAllowedVideoHostnames 
+} from '../../../lib/url-validation';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { id } = req.query;
@@ -55,14 +61,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         isPublished
       } = req.body;
 
+      // 🔒 Validate URL fields to prevent SSRF attacks
+      if (coverImage && !isValidImageUrl(coverImage)) {
+        return res.status(400).json({
+          error: `Invalid cover image URL. Only HTTPS URLs from trusted hosts are allowed: ${getAllowedImageHostnames().join(', ')}`
+        });
+      }
+
+      if (videoUrl && !isValidVideoUrl(videoUrl)) {
+        return res.status(400).json({
+          error: `Invalid video URL. Only HTTPS URLs from trusted hosts are allowed: ${getAllowedVideoHostnames().join(', ')}`
+        });
+      }
+
       await db.update(articles)
         .set({
           title,
           slug,
           excerpt,
           content,
-          coverImage,
-          videoUrl,
+          coverImage: coverImage || null,
+          videoUrl: videoUrl || null,
           isPublished,
           updatedAt: new Date(),
         })

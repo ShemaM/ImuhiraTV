@@ -3,6 +3,11 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { db } from '../../../db';
 import { debates } from '../../../db/schema';
 import { desc } from 'drizzle-orm';
+import { 
+  isValidYouTubeVideoId, 
+  isValidImageUrl, 
+  getAllowedImageHostnames 
+} from '../../../lib/url-validation';
 
 export default async function handler(
   req: NextApiRequest,
@@ -37,7 +42,20 @@ export default async function handler(
         });
       }
 
-      // 2. Insert (No Transaction Needed anymore)
+      // 2. Validate URL fields to prevent SSRF attacks
+      if (data.youtubeVideoId && !isValidYouTubeVideoId(data.youtubeVideoId)) {
+        return res.status(400).json({
+          error: 'Invalid YouTube video ID. Must be exactly 11 characters (alphanumeric, dash, or underscore).'
+        });
+      }
+
+      if (data.mainImageUrl && !isValidImageUrl(data.mainImageUrl)) {
+        return res.status(400).json({
+          error: `Invalid image URL. Only HTTPS URLs from trusted hosts are allowed: ${getAllowedImageHostnames().join(', ')}`
+        });
+      }
+
+      // 3. Insert (No Transaction Needed anymore)
       const [newDebate] = await db.insert(debates).values({
         title: data.title,
         slug: data.slug,
@@ -51,8 +69,8 @@ export default async function handler(
         opposerName: data.opposerName || 'Opposer',
         opposerArguments: data.opposerArguments || '', // HTML String
         
-        youtubeVideoId: data.youtubeVideoId,
-        mainImageUrl: data.mainImageUrl,
+        youtubeVideoId: data.youtubeVideoId || null,
+        mainImageUrl: data.mainImageUrl || null,
         
         // Map 'status' to boolean if needed, or expect boolean from frontend
         isPublished: data.isPublished ?? (data.status === 'published'),

@@ -102,9 +102,10 @@ export function extractAndValidateYouTubeVideoId(url: string | null | undefined)
 }
 
 /**
- * Validates an image URL against the allowlist of trusted hostnames
+ * Validates an image URL against the allowlist of trusted hostnames.
+ * Returns true for empty/null URLs (treats them as optional fields).
  * @param url - The URL to validate
- * @returns true if the URL is from a trusted hostname, false otherwise
+ * @returns true if the URL is empty or from a trusted hostname, false if invalid
  */
 export function isValidImageUrl(url: string | null | undefined): boolean {
   if (!url) return true; // Empty URLs are considered valid (optional field)
@@ -131,9 +132,10 @@ export function isValidImageUrl(url: string | null | undefined): boolean {
 }
 
 /**
- * Validates a video URL against the allowlist of trusted hostnames
+ * Validates a video URL against the allowlist of trusted hostnames.
+ * Returns true for empty/null URLs (treats them as optional fields).
  * @param url - The URL to validate
- * @returns true if the URL is from a trusted hostname, false otherwise
+ * @returns true if the URL is empty or from a trusted hostname, false if invalid
  */
 export function isValidVideoUrl(url: string | null | undefined): boolean {
   if (!url) return true; // Empty URLs are considered valid (optional field)
@@ -156,29 +158,6 @@ export function isValidVideoUrl(url: string | null | undefined): boolean {
   } catch {
     // Invalid URL format
     return false;
-  }
-}
-
-/**
- * Sanitizes a URL by ensuring it doesn't contain path traversal patterns
- * @param url - The URL to sanitize
- * @returns The sanitized URL or null if invalid
- */
-export function sanitizeUrl(url: string | null | undefined): string | null {
-  if (!url) return null;
-
-  try {
-    const parsedUrl = new URL(url);
-
-    // Check for path traversal
-    if (PATH_TRAVERSAL_PATTERN.test(parsedUrl.pathname)) {
-      return null;
-    }
-
-    // Normalize the URL
-    return parsedUrl.href;
-  } catch {
-    return null;
   }
 }
 

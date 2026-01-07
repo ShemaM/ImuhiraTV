@@ -17,6 +17,11 @@ import { languages } from '../../../i18n/settings';
 import { db } from '../../../db';
 import { debates, articles } from '../../../db/schema';
 import { desc, eq } from 'drizzle-orm';
+import { 
+  isValidYouTubeVideoId, 
+  isValidImageUrl,
+  extractAndValidateYouTubeVideoId 
+} from '../../../lib/url-validation';
 
 // Types
 interface Category {
@@ -202,14 +207,21 @@ export const getStaticProps: GetStaticProps = async ({ params, locale }) => {
     let article: Article | null = null;
 
     if (articleFromArticles) {
+      // Validate URLs for security (prevent SSRF with legacy data)
+      const coverImage = articleFromArticles.coverImage;
+      const validatedCoverImage = (coverImage && isValidImageUrl(coverImage)) 
+        ? coverImage 
+        : '';
+      const validatedVideoId = extractAndValidateYouTubeVideoId(articleFromArticles.videoUrl);
+
       article = {
         id: articleFromArticles.id,
         title: articleFromArticles.title,
         slug: articleFromArticles.slug || '',
-        mainImageUrl: articleFromArticles.coverImage || '',
+        mainImageUrl: validatedCoverImage,
         authorName: 'Imuhira Staff',
         publishedAt: formatDate(articleFromArticles.createdAt),
-        youtubeVideoId: articleFromArticles.videoUrl || null,
+        youtubeVideoId: validatedVideoId,
         category: { name: 'News', href: `/category/news` },
         content: articleFromArticles.content || '',
         excerpt: articleFromArticles.excerpt || (articleFromArticles.content?.replace(/<[^>]+>/g, '').slice(0, 150) + '...'),
@@ -221,14 +233,24 @@ export const getStaticProps: GetStaticProps = async ({ params, locale }) => {
       });
 
       if (articleFromDebates) {
+        // Validate URLs for security (prevent SSRF with legacy data)
+        const mainImageUrl = articleFromDebates.mainImageUrl;
+        const validatedMainImageUrl = (mainImageUrl && isValidImageUrl(mainImageUrl)) 
+          ? mainImageUrl 
+          : '';
+        const youtubeVideoId = articleFromDebates.youtubeVideoId;
+        const validatedYoutubeVideoId = (youtubeVideoId && isValidYouTubeVideoId(youtubeVideoId)) 
+          ? youtubeVideoId 
+          : null;
+
         article = {
           id: articleFromDebates.id,
           title: articleFromDebates.title,
           slug: articleFromDebates.slug || '',
-          mainImageUrl: articleFromDebates.mainImageUrl || '',
+          mainImageUrl: validatedMainImageUrl,
           authorName: 'Imuhira Staff',
           publishedAt: formatDate(articleFromDebates.createdAt),
-          youtubeVideoId: articleFromDebates.youtubeVideoId || null,
+          youtubeVideoId: validatedYoutubeVideoId,
           category: {
             name: articleFromDebates.category || 'Politics',
             href: `/category/${(articleFromDebates.category || 'politics').toLowerCase()}`,

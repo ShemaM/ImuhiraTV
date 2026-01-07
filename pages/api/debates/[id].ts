@@ -3,6 +3,11 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { db, debates } from '../../../db';
 import { eq } from 'drizzle-orm';
+import { 
+  isValidYouTubeVideoId, 
+  isValidImageUrl, 
+  getAllowedImageHostnames 
+} from '../../../lib/url-validation';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { id } = req.query;
@@ -65,6 +70,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         isPublished      // was 'status'
       } = req.body;
 
+      // 🔒 Validate URL fields to prevent SSRF attacks
+      if (youtubeVideoId && !isValidYouTubeVideoId(youtubeVideoId)) {
+        return res.status(400).json({
+          error: 'Invalid YouTube video ID. Must be exactly 11 characters (alphanumeric, dash, or underscore).'
+        });
+      }
+
+      if (mainImageUrl && !isValidImageUrl(mainImageUrl)) {
+        return res.status(400).json({
+          error: `Invalid image URL. Only HTTPS URLs from trusted hosts are allowed: ${getAllowedImageHostnames().join(', ')}`
+        });
+      }
+
       // 🟢 Update query - No transaction needed anymore!
       await db.update(debates)
         .set({
@@ -76,8 +94,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           opposerName,
           proposerArguments,
           opposerArguments,
-          youtubeVideoId,
-          mainImageUrl,
+          youtubeVideoId: youtubeVideoId || null,
+          mainImageUrl: mainImageUrl || null,
           isPublished,
           updatedAt: new Date(), // Always update the timestamp
         })

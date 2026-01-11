@@ -10,7 +10,7 @@ import SectionHeader from '../../components/common/SectionHeader';
 import TrendingWidget from '../../components/common/TrendingWidget';
 import Layout from '../../components/layouts/Layout';
 import { languages } from '../../i18n/settings';
-import { db } from '../../db';
+import { db, isDbConfigured } from '../../db';
 import { debates, articles } from '../../db/schema';
 import { desc, eq } from 'drizzle-orm';
 // We define the interface locally to ensure it matches the mapping below exactly
@@ -116,7 +116,7 @@ export const getStaticPaths: GetStaticPaths = async () => {
 };
 
 export const getStaticProps: GetStaticProps = async ({ params }) => {
-  if (!db) {
+  if (!isDbConfigured) {
     return {
       props: {
         lng: params?.lng || 'en',

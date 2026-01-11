@@ -13,6 +13,12 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  turbopack: {
+    resolveAlias: {
+      "next-i18next": "./lib/noop-i18n.ts",
+      "next-i18next/serverSideTranslations": "./lib/noop-serverSideTranslations.ts",
+    },
+  },
   webpack: (config) => {
     config.resolve.alias["next-i18next"] = path.resolve(__dirname, "lib/noop-i18n.ts");
     config.resolve.alias["next-i18next/serverSideTranslations"] = path.resolve(

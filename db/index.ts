@@ -1,9 +1,9 @@
-import { drizzle } from 'drizzle-orm/postgres-js';
+import { drizzle, type PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import * as schema from './schema';
 
 const connectionString = process.env.DATABASE_URL;
-type DBClient = ReturnType<typeof drizzle>;
+type DBClient = PostgresJsDatabase<typeof schema>;
 
 // Only initialize the client when a connection string is provided
 let dbInstance: DBClient | null = null;
@@ -29,4 +29,5 @@ const createNoopDb = (): DBClient =>
   });
 
 export const db: DBClient = dbInstance ?? createNoopDb();
+export const isDbConfigured = Boolean(dbInstance);
 export * from './schema';

@@ -1,6 +1,6 @@
 type TranslationOptions = Record<string, unknown>;
 
-export function useTranslation() {
+export function useTranslation(..._args: unknown[]) {
   return {
     t: (key: string, options?: TranslationOptions) =>
       options && 'defaultValue' in options && options.defaultValue !== undefined

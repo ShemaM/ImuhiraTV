@@ -14,7 +14,7 @@ import CommentSection from '../../../components/common/CommentSection';
 
 // Logic & Data
 import { languages } from '../../../i18n/settings';
-import { db } from '../../../db';
+import { db, isDbConfigured } from '../../../db';
 import { debates, articles } from '../../../db/schema';
 import { desc, eq } from 'drizzle-orm';
 import { 
@@ -198,7 +198,7 @@ export const getStaticProps: GetStaticProps = async ({ params, locale }) => {
   const currentLocale = (params?.lng as string) || (locale as string) || 'en';
 
   // Safety Check: If DB is not initialized (common during build scans)
-  if (!db) {
+  if (!isDbConfigured) {
     return {
       props: {
         article: buildPlaceholderArticle(slug, currentLocale),

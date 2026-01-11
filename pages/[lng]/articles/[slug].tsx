@@ -185,7 +185,25 @@ export const getStaticProps: GetStaticProps = async ({ params, locale }) => {
 
   // Safety Check: If DB is not initialized (common during build scans)
   if (!db) {
-    return { notFound: true };
+    return {
+      props: {
+        article: {
+          id: slug || 'placeholder',
+          title: slug || 'Article',
+          slug: slug || '',
+          excerpt: '',
+          mainImageUrl: '/images/placeholder.jpg',
+          authorName: 'Imuhira Staff',
+          publishedAt: '',
+          category: { name: 'News', href: `/${currentLocale}/category/news` },
+          content: '',
+        },
+        trendingArticles: [],
+        lng: currentLocale,
+        ...(await serverSideTranslations(currentLocale, ['common', 'articles'])),
+      },
+      revalidate: 60,
+    };
   }
 
   const formatDate = (date: Date | null) => {
@@ -265,7 +283,27 @@ export const getStaticProps: GetStaticProps = async ({ params, locale }) => {
       }
     }
 
-    if (!article) return { notFound: true };
+    if (!article) {
+      return {
+        props: {
+          article: {
+            id: slug || 'placeholder',
+            title: slug || 'Article',
+            slug: slug || '',
+            excerpt: '',
+            mainImageUrl: '/images/placeholder.jpg',
+            authorName: 'Imuhira Staff',
+            publishedAt: '',
+            category: { name: 'News', href: `/${currentLocale}/category/news` },
+            content: '',
+          },
+          trendingArticles: [],
+          lng: currentLocale,
+          ...(await serverSideTranslations(currentLocale, ['common', 'articles'])),
+        },
+        revalidate: 60,
+      };
+    }
 
     // 3. Fetch Trending
     const trendingData = await db.select().from(debates).orderBy(desc(debates.createdAt)).limit(5);

@@ -23,20 +23,6 @@ import {
   extractAndValidateYouTubeVideoId 
 } from '../../../lib/url-validation';
 
-const PLACEHOLDER_IMAGE = '/images/logo.jpg';
-const PLACEHOLDER_AUTHOR = 'Imuhira Staff';
-const buildPlaceholderArticle = (slug: string, currentLocale: string) => ({
-  id: slug || 'placeholder',
-  title: slug || 'Article',
-  slug: slug || '',
-  excerpt: '',
-  mainImageUrl: PLACEHOLDER_IMAGE,
-  authorName: PLACEHOLDER_AUTHOR,
-  publishedAt: '',
-  category: { name: 'News', href: `/${currentLocale}/category/news` },
-  content: '',
-});
-
 // Types
 interface Category {
   name: string;
@@ -199,15 +185,7 @@ export const getStaticProps: GetStaticProps = async ({ params, locale }) => {
 
   // Safety Check: If DB is not initialized (common during build scans)
   if (!db) {
-    return {
-      props: {
-        article: buildPlaceholderArticle(slug, currentLocale),
-        trendingArticles: [],
-        lng: currentLocale,
-        ...(await serverSideTranslations(currentLocale, ['common', 'articles'])),
-      },
-      revalidate: 60,
-    };
+    return { notFound: true };
   }
 
   const formatDate = (date: Date | null) => {
@@ -287,17 +265,7 @@ export const getStaticProps: GetStaticProps = async ({ params, locale }) => {
       }
     }
 
-    if (!article) {
-      return {
-        props: {
-          article: buildPlaceholderArticle(slug, currentLocale),
-          trendingArticles: [],
-          lng: currentLocale,
-          ...(await serverSideTranslations(currentLocale, ['common', 'articles'])),
-        },
-        revalidate: 60,
-      };
-    }
+    if (!article) return { notFound: true };
 
     // 3. Fetch Trending
     const trendingData = await db.select().from(debates).orderBy(desc(debates.createdAt)).limit(5);

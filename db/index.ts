@@ -3,9 +3,10 @@ import postgres from 'postgres';
 import * as schema from './schema';
 
 const connectionString = process.env.DATABASE_URL;
+type DBClient = ReturnType<typeof drizzle>;
 
 // Only initialize the client when a connection string is provided
-let dbInstance: ReturnType<typeof drizzle> | null = null;
+let dbInstance: DBClient | null = null;
 if (connectionString) {
   const client = postgres(connectionString, { 
     prepare: false,
@@ -16,6 +17,16 @@ if (connectionString) {
   console.warn('⚠️ DATABASE_URL is not defined. Database queries will fail at runtime.');
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const db = dbInstance as any;
+const noopError = () => {
+  throw new Error('Database is not configured. Please set DATABASE_URL.');
+};
+
+const createNoopDb = (): DBClient =>
+  new Proxy({} as DBClient, {
+    get() {
+      return noopError as unknown as DBClient[keyof DBClient];
+    },
+  });
+
+export const db: DBClient = dbInstance ?? createNoopDb();
 export * from './schema';

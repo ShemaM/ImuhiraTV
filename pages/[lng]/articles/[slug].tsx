@@ -23,6 +23,20 @@ import {
   extractAndValidateYouTubeVideoId 
 } from '../../../lib/url-validation';
 
+const PLACEHOLDER_IMAGE = '/images/logo.jpg';
+const PLACEHOLDER_AUTHOR = 'Imuhira Staff';
+const buildPlaceholderArticle = (slug: string, currentLocale: string) => ({
+  id: slug || 'placeholder',
+  title: slug || 'Article',
+  slug: slug || '',
+  excerpt: '',
+  mainImageUrl: PLACEHOLDER_IMAGE,
+  authorName: PLACEHOLDER_AUTHOR,
+  publishedAt: '',
+  category: { name: 'News', href: `/${currentLocale}/category/news` },
+  content: '',
+});
+
 // Types
 interface Category {
   name: string;
@@ -187,17 +201,7 @@ export const getStaticProps: GetStaticProps = async ({ params, locale }) => {
   if (!db) {
     return {
       props: {
-        article: {
-          id: slug || 'placeholder',
-          title: slug || 'Article',
-          slug: slug || '',
-          excerpt: '',
-          mainImageUrl: '/images/placeholder.jpg',
-          authorName: 'Imuhira Staff',
-          publishedAt: '',
-          category: { name: 'News', href: `/${currentLocale}/category/news` },
-          content: '',
-        },
+        article: buildPlaceholderArticle(slug, currentLocale),
         trendingArticles: [],
         lng: currentLocale,
         ...(await serverSideTranslations(currentLocale, ['common', 'articles'])),
@@ -286,17 +290,7 @@ export const getStaticProps: GetStaticProps = async ({ params, locale }) => {
     if (!article) {
       return {
         props: {
-          article: {
-            id: slug || 'placeholder',
-            title: slug || 'Article',
-            slug: slug || '',
-            excerpt: '',
-            mainImageUrl: '/images/placeholder.jpg',
-            authorName: 'Imuhira Staff',
-            publishedAt: '',
-            category: { name: 'News', href: `/${currentLocale}/category/news` },
-            content: '',
-          },
+          article: buildPlaceholderArticle(slug, currentLocale),
           trendingArticles: [],
           lng: currentLocale,
           ...(await serverSideTranslations(currentLocale, ['common', 'articles'])),

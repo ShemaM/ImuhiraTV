@@ -1,7 +1,11 @@
+type TranslationOptions = Record<string, unknown>;
+
 export function useTranslation() {
   return {
-    t: (key: string, options?: { defaultValue?: string }) =>
-      options?.defaultValue !== undefined ? options.defaultValue : key,
+    t: (key: string, options?: TranslationOptions) =>
+      options && 'defaultValue' in options && options.defaultValue !== undefined
+        ? String(options.defaultValue)
+        : key,
     i18n: { language: "en" },
   };
 }

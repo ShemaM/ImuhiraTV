@@ -1,3 +1,3 @@
-export async function serverSideTranslations() {
-  return {};
+export async function serverSideTranslations(..._args: unknown[]) {
+  return { _nextI18Next: {} };
 }

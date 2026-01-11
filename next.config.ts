@@ -1,5 +1,7 @@
 import type { NextConfig } from "next";
-import i18nextConfig from "./next-i18next.config.js";
+
+// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
+const i18nextConfig = require("./next-i18next.config.js");
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,

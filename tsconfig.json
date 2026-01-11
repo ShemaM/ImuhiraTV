@@ -21,6 +21,12 @@
     "paths": {
       "@/*": [
         "./*"
+      ],
+      "next-i18next": [
+        "./lib/noop-i18n.ts"
+      ],
+      "next-i18next/serverSideTranslations": [
+        "./lib/noop-serverSideTranslations.ts"
       ]
     },
     "plugins": [

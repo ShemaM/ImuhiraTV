@@ -116,6 +116,18 @@ export const getStaticPaths: GetStaticPaths = async () => {
 };
 
 export const getStaticProps: GetStaticProps = async ({ params }) => {
+  if (!db) {
+    return {
+      props: {
+        lng: params?.lng || 'en',
+        featuredArticle: null,
+        latestArticles: [],
+        trendingArticles: [],
+      },
+      revalidate: 60,
+    };
+  }
+
   // Fetch published debates
   const debatesRaw = await db
     .select()

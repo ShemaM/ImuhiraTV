@@ -6,7 +6,7 @@ import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import Layout from '../../../components/layouts/Layout';
 import ArticleCard from '../../../components/common/ArticleCard';
 import { useRouter } from 'next/router';
-import { db } from '../../../db';
+import { db, isDbConfigured } from '../../../db';
 import { debates } from '../../../db/schema';
 import { eq } from 'drizzle-orm';
 import { CATEGORY_DESCRIPTIONS } from '../../../constants/site';
@@ -136,7 +136,7 @@ export const getStaticProps: GetStaticProps = async ({ params, locale }) => {
   }
 
   // Safety check: if DB didn't initialize, return empty articles with category description
-  if (!db) {
+  if (!isDbConfigured) {
     return {
       props: {
         articles: [],

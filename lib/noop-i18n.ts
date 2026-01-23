@@ -1,6 +1,8 @@
 type TranslationOptions = Record<string, unknown>;
 
-export function useTranslation() {
+type Namespace = string | string[] | undefined;
+
+export function useTranslation(_namespaces?: Namespace) {
   return {
     t: (key: string, options?: TranslationOptions) =>
       options && 'defaultValue' in options && options.defaultValue !== undefined

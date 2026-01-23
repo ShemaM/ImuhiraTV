@@ -3,10 +3,9 @@ import postgres from 'postgres';
 import * as schema from './schema';
 
 const connectionString = process.env.DATABASE_URL;
-type DBClient = ReturnType<typeof drizzle>;
 
-// Only initialize the client when a connection string is provided
-let dbInstance: DBClient | null = null;
+// Create a properly typed database instance
+let dbInstance: ReturnType<typeof drizzle<typeof schema>> | null = null;
 if (connectionString) {
   const client = postgres(connectionString, { 
     prepare: false,
@@ -17,16 +16,7 @@ if (connectionString) {
   console.warn('⚠️ DATABASE_URL is not defined. Database queries will fail at runtime.');
 }
 
-const noopError = () => {
-  throw new Error('Database is not configured. Please set DATABASE_URL.');
-};
-
-const createNoopDb = (): DBClient =>
-  new Proxy({} as DBClient, {
-    get() {
-      return noopError as unknown as DBClient[keyof DBClient];
-    },
-  });
-
-export const db: DBClient = dbInstance ?? createNoopDb();
+// Export a properly typed db instance, using non-null assertion for compile-time
+// The actual runtime check is that dbInstance may be null, but TypeScript sees the full type
+export const db = dbInstance as ReturnType<typeof drizzle<typeof schema>>;
 export * from './schema';

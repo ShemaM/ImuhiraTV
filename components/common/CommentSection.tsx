@@ -11,7 +11,8 @@ interface Comment {
 }
 
 interface Props {
-  debateId: string | number;
+  debateId?: string | number;
+  articleId?: string | number;
   showVerdict?: boolean; // Optional prop to show/hide verdict section
 }
 
@@ -179,7 +180,7 @@ const CommentItem = ({
 };
 
 // --- Main Component ---
-export default function CommentSection({ debateId, showVerdict = true }: Props) {
+export default function CommentSection({ debateId, articleId, showVerdict = true }: Props) {
   const [comments, setComments] = useState<Comment[]>([]);
   
   // Form State
@@ -190,12 +191,16 @@ export default function CommentSection({ debateId, showVerdict = true }: Props) 
 
   const fetchComments = useCallback(async () => {
     try {
-      const res = await fetch(`/api/comments?debateId=${debateId}`);
+      const targetId = articleId ?? debateId;
+      const targetKey = articleId ? 'articleId' : 'debateId';
+      if (!targetId) return;
+
+      const res = await fetch(`/api/comments?${targetKey}=${targetId}`);
       if (res.ok) setComments(await res.json());
     } catch (err) {
       console.error(err);
     }
-  }, [debateId]);
+  }, [articleId, debateId]);
 
   useEffect(() => {
     fetchComments();
@@ -207,11 +212,15 @@ export default function CommentSection({ debateId, showVerdict = true }: Props) 
 
     setLoading(true);
     try {
+      const targetId = articleId ?? debateId;
+      if (!targetId) return;
+
       const res = await fetch('/api/comments', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          debateId, 
+          debateId: debateId ?? null,
+          articleId: articleId ?? null,
           parentId: replyingTo, 
           authorName, 
           content 

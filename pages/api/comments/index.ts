@@ -8,18 +8,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   
   // GET: Fetch all comments for a debate
   if (req.method === 'GET') {
-    const { debateId } = req.query;
+    const { debateId, articleId } = req.query;
 
-    if (!debateId || typeof debateId !== 'string') {
-      return res.status(400).json({ error: 'Missing debateId' });
+    // Require at least one identifier
+    if ((!debateId || typeof debateId !== 'string') && (!articleId || typeof articleId !== 'string')) {
+      return res.status(400).json({ error: 'Missing debateId or articleId' });
     }
 
     try {
-      const allComments = await db
+      const query = db
         .select()
         .from(comments)
-        .where(eq(comments.debateId, debateId))
         .orderBy(desc(comments.createdAt));
+
+      const allComments = debateId
+        ? await query.where(eq(comments.debateId, debateId))
+        : await query.where(eq(comments.articleId, articleId as string));
 
       return res.status(200).json(allComments);
     } catch (error) {
@@ -30,15 +34,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   // POST: Create a new comment OR reply
   if (req.method === 'POST') {
-    const { debateId, parentId, authorName, content } = req.body;
+    const { debateId, articleId, parentId, authorName, content } = req.body;
 
-    if (!debateId || !authorName || !content) {
+    if ((!debateId && !articleId) || !authorName || !content) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
     try {
       const [newComment] = await db.insert(comments).values({
         debateId,
+        articleId,
         parentId: parentId || null, // If parentId is sent, it's a reply
         authorName,
         content,

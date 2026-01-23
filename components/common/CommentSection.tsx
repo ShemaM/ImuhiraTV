@@ -82,13 +82,14 @@ const CommentForm = ({
         >
           Cancel
         </button>
-      )}
-      <button 
-        disabled={loading}
-        className="bg-red-700 text-white px-5 py-2 rounded-sm text-xs font-bold uppercase tracking-widest hover:bg-slate-900 transition-colors disabled:opacity-50"
-      >
-        {loading ? 'Posting...' : isReply ? 'Reply' : 'Post Comment'}
-      </button>
+       )}
+       <button 
+         type="submit"
+         disabled={loading}
+         className="bg-red-700 text-white px-5 py-2 rounded-sm text-xs font-bold uppercase tracking-widest hover:bg-slate-900 transition-colors disabled:opacity-50"
+       >
+         {loading ? 'Posting...' : isReply ? 'Reply' : 'Post Comment'}
+       </button>
     </div>
   </form>
 );

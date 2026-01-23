@@ -13,9 +13,8 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  // Turbopack is enabled to keep parity with Next.js defaults while still allowing
-  // the custom webpack aliases below. Remove this override once translations are restored.
-  turbopack: {},
+  // Turbopack triggers EPERM rename issues on Windows; disable to fall back to webpack dev server.
+  turbopack: false,
   webpack: (config) => {
     config.resolve.alias["next-i18next"] = path.resolve(__dirname, "lib/noop-i18n.ts");
     config.resolve.alias["next-i18next/serverSideTranslations"] = path.resolve(

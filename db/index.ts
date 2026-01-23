@@ -18,5 +18,14 @@ const missingDbHandler = () => {
   throw new Error('Database is not configured. Please set DATABASE_URL.');
 };
 
-export const db: DbType = dbInstance ?? new Proxy({} as DbType, { get: () => missingDbHandler as unknown as DbType[keyof DbType] });
+const createMissingDbProxy = (): DbType =>
+  new Proxy({} as DbType, {
+    get(_target, prop) {
+      throw new Error(
+        `Database is not configured. Attempted to access '${String(prop)}'. Please set DATABASE_URL.`,
+      );
+    },
+  });
+
+export const db: DbType = dbInstance ?? createMissingDbProxy();
 export * from './schema';

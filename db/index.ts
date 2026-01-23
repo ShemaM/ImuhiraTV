@@ -14,5 +14,9 @@ if (connectionString) {
   console.warn('⚠️ DATABASE_URL is not defined. Database queries will fail at runtime.');
 }
 
-export const db: DbType | null = dbInstance;
+const missingDbHandler = () => {
+  throw new Error('Database is not configured. Please set DATABASE_URL.');
+};
+
+export const db: DbType = dbInstance ?? new Proxy({} as DbType, { get: () => missingDbHandler as unknown as DbType[keyof DbType] });
 export * from './schema';

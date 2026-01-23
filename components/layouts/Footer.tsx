@@ -1,9 +1,7 @@
 import Link from 'next/link';
-import { useTranslation } from 'next-i18next';
 import { useRouter } from 'next/router';
 
 export default function Footer() {
-  const { t } = useTranslation('common');
   const router = useRouter();
   const lng = (router.query.lng as string) || 'en';
   const currentYear = new Date().getFullYear();
@@ -19,7 +17,7 @@ export default function Footer() {
               IMUHIRA
             </Link>
             <p className="mt-4 text-sm text-gray-400 leading-relaxed">
-              {t('footer.description')}
+              A platform for the Banyamulenge people to tell their stories and share their culture with the world.
             </p>
             
             {/* Social Icons (Placeholders) */}
@@ -32,41 +30,41 @@ export default function Footer() {
 
           {/* COLUMN 2: SECTIONS */}
           <div>
-            <h3 className="text-sm font-bold text-gray-200 tracking-wider uppercase mb-4">{t('footer.sections')}</h3>
+            <h3 className="text-sm font-bold text-gray-200 tracking-wider uppercase mb-4">Sections</h3>
             <ul className="space-y-3">
-              <li><Link href={`/${lng}/category/history`} className="text-gray-400 hover:text-white transition text-sm">{t('footer.history')}</Link></li>
-              <li><Link href={`/${lng}/category/culture`} className="text-gray-400 hover:text-white transition text-sm">{t('footer.culture')}</Link></li>
-              <li><Link href={`/${lng}/category/conflict`} className="text-gray-400 hover:text-white transition text-sm">{t('footer.conflict')}</Link></li>
-              <li><Link href={`/${lng}/category/stories`} className="text-gray-400 hover:text-white transition text-sm">{t('footer.stories')}</Link></li>
+              <li><Link href={`/${lng}/category/history`} className="text-gray-400 hover:text-white transition text-sm">History</Link></li>
+              <li><Link href={`/${lng}/category/culture`} className="text-gray-400 hover:text-white transition text-sm">Culture</Link></li>
+              <li><Link href={`/${lng}/category/conflict`} className="text-gray-400 hover:text-white transition text-sm">Conflict</Link></li>
+              <li><Link href={`/${lng}/category/stories`} className="text-gray-400 hover:text-white transition text-sm">Stories</Link></li>
             </ul>
           </div>
 
           {/* COLUMN 3: SUPPORT */}
           <div>
-            <h3 className="text-sm font-bold text-gray-200 tracking-wider uppercase mb-4">{t('footer.support')}</h3>
+            <h3 className="text-sm font-bold text-gray-200 tracking-wider uppercase mb-4">Support</h3>
             <ul className="space-y-3">
-              <li><Link href={`/${lng}/about`} className="text-gray-400 hover:text-white transition text-sm">{t('footer.about')}</Link></li>
-              <li><Link href={`/${lng}/our-stance`} className="text-gray-400 hover:text-white transition text-sm">{t('footer.ourStance')}</Link></li>
-              <li><Link href={`/${lng}/contact`} className="text-gray-400 hover:text-white transition text-sm">{t('footer.contact')}</Link></li>
-              <li><Link href={`/${lng}/privacy`} className="text-gray-400 hover:text-white transition text-sm">{t('footer.privacy')}</Link></li>
-              <li><Link href={`/${lng}/terms`} className="text-gray-400 hover:text-white transition text-sm">{t('footer.terms')}</Link></li>
+              <li><Link href={`/${lng}/about`} className="text-gray-400 hover:text-white transition text-sm">About Us</Link></li>
+              <li><Link href={`/${lng}/our-stance`} className="text-gray-400 hover:text-white transition text-sm">Our Stance</Link></li>
+              <li><Link href={`/${lng}/contact`} className="text-gray-400 hover:text-white transition text-sm">Contact</Link></li>
+              <li><Link href={`/${lng}/privacy`} className="text-gray-400 hover:text-white transition text-sm">Privacy Policy</Link></li>
+              <li><Link href={`/${lng}/terms`} className="text-gray-400 hover:text-white transition text-sm">Terms of Service</Link></li>
             </ul>
           </div>
 
           {/* COLUMN 4: NEWSLETTER */}
           <div>
-            <h3 className="text-sm font-bold text-gray-200 tracking-wider uppercase mb-4">{t('footer.briefing')}</h3>
+            <h3 className="text-sm font-bold text-gray-200 tracking-wider uppercase mb-4">Briefing</h3>
             <p className="text-xs text-gray-400 mb-4">
-              {t('footer.newsletterPrompt')}
+              Sign up for our weekly dispatch.
             </p>
             <form className="flex flex-col gap-2">
               <input 
                 type="email" 
-                placeholder={t('footer.emailPlaceholder')}
+                placeholder="Email address"
                 className="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded px-3 py-2 focus:outline-none focus:border-red-600"
               />
               <button className="bg-red-600 text-white text-xs font-bold py-2 rounded hover:bg-red-700 transition-colors uppercase tracking-wide">
-                {t('footer.subscribe')}
+                Subscribe
               </button>
             </form>
           </div>
@@ -78,7 +76,7 @@ export default function Footer() {
             &copy; {currentYear} Imuhira.
           </p>
           <p className="text-xs text-slate-500 uppercase mt-2 md:mt-0">
-            {t('footer.tagline')}
+            A Voice for the Voiceless.
           </p>
         </div>
       </div>

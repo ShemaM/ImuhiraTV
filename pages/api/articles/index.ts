@@ -1,24 +1,31 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { db } from '../../../db';
-import { debates } from '../../../db/schema';
-import { desc } from 'drizzle-orm';
+import { articles } from '../../../db/schema';
+import { desc, eq } from 'drizzle-orm';
+
+const DEFAULT_AUTHOR = 'Imuhira Staff';
+const DEFAULT_CATEGORY = { name: 'News', href: '/category/news' };
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {
     try {
-      const allArticles = await db.select().from(debates).orderBy(desc(debates.createdAt)).execute();
+      const allArticles = await db
+        .select()
+        .from(articles)
+        .where(eq(articles.isPublished, true))
+        .orderBy(desc(articles.createdAt))
+        .execute();
       
-      const articles = allArticles.map(a => ({
+      const serialized = allArticles.map(a => ({
         ...a,
-        category: {
-          name: a.category,
-          href: `/category/${a.category.toLowerCase()}`,
-        },
-        content: a.summary ? a.summary.split('\n') : [],
-        excerpt: a.summary ? a.summary.slice(0, 150) : '',
-      })) ;
+        author_name: DEFAULT_AUTHOR,
+        summary: a.content || a.excerpt || '',
+        category: DEFAULT_CATEGORY,
+        content: a.content || '',
+        excerpt: a.excerpt || (a.content ? a.content.slice(0, 150) : ''),
+      }));
 
-      res.status(200).json(articles);
+      res.status(200).json(serialized);
     } catch (error) {
       console.error('Error fetching articles:', error);
       res.status(500).json({ message: 'Error fetching articles' });

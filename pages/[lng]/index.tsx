@@ -116,41 +116,50 @@ export const getStaticPaths: GetStaticPaths = async () => {
 };
 
 export const getStaticProps: GetStaticProps = async ({ params }) => {
-  if (!db) {
-    return {
-      props: {
-        lng: params?.lng || 'en',
-        featuredArticle: null,
-        latestArticles: [],
-        trendingArticles: [],
-      },
-      revalidate: 60,
-    };
+  const lng = (params?.lng as string) || 'en';
+  const translations = await serverSideTranslations(lng, ['common', 'articles']);
+
+  const emptyResponse = {
+    props: {
+      lng,
+      ...translations,
+      featuredArticle: null,
+      latestArticles: [],
+      trendingArticles: [],
+    },
+    revalidate: 60,
+  };
+
+  if (!process.env.DATABASE_URL) {
+    return emptyResponse;
   }
 
   // Fetch published debates
-  const debatesRaw = await db
-    .select()
-    .from(debates)
-    .where(eq(debates.isPublished, true))
-    .orderBy(desc(debates.createdAt))
-    .execute();
+  let allArticles: ArticleUI[] = [];
 
-  // Fetch published articles from the articles table
-  const articlesRaw = await db
-    .select()
-    .from(articles)
-    .where(eq(articles.isPublished, true))
-    .orderBy(desc(articles.createdAt))
-    .execute();
+  try {
+    const debatesRaw = await db
+      .select()
+      .from(debates)
+      .where(eq(debates.isPublished, true))
+      .orderBy(desc(debates.createdAt))
+      .execute();
+
+    // Fetch published articles from the articles table
+    const articlesRaw = await db
+      .select()
+      .from(articles)
+      .where(eq(articles.isPublished, true))
+      .orderBy(desc(articles.createdAt))
+      .execute();
 
   // Map debates to ArticleUI format
-  const debatesFormatted: ArticleWithRawDate[] = debatesRaw.map(a => ({
-    id: a.id,
-    title: a.title,
-    slug: a.slug || '',
-    excerpt: a.summary ? a.summary.replace(/<[^>]+>/g, '').slice(0, 150) + '...' : '',
-    main_image_url: a.mainImageUrl || '/images/placeholder.jpg',
+    const debatesFormatted: ArticleWithRawDate[] = debatesRaw.map(a => ({
+      id: a.id,
+      title: a.title,
+      slug: a.slug || '',
+      excerpt: a.summary ? a.summary.replace(/<[^>]+>/g, '').slice(0, 150) + '...' : '',
+      main_image_url: a.mainImageUrl || '/images/placeholder.jpg',
     published_at: a.createdAt 
       ? new Date(a.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) 
       : '',
@@ -163,12 +172,12 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
   }));
 
   // Map articles to ArticleUI format
-  const articlesFormatted: ArticleWithRawDate[] = articlesRaw.map(a => ({
-    id: a.id,
-    title: a.title,
-    slug: a.slug || '',
-    excerpt: a.excerpt || (a.content ? a.content.replace(/<[^>]+>/g, '').slice(0, 150) + '...' : ''),
-    main_image_url: a.coverImage || '/images/placeholder.jpg',
+    const articlesFormatted: ArticleWithRawDate[] = articlesRaw.map(a => ({
+      id: a.id,
+      title: a.title,
+      slug: a.slug || '',
+      excerpt: a.excerpt || (a.content ? a.content.replace(/<[^>]+>/g, '').slice(0, 150) + '...' : ''),
+      main_image_url: a.coverImage || '/images/placeholder.jpg',
     published_at: a.createdAt 
       ? new Date(a.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) 
       : '',
@@ -181,13 +190,17 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
   }));
 
   // Combine and sort by creation date (newest first)
-  const allArticles: ArticleUI[] = [...debatesFormatted, ...articlesFormatted]
-    .sort((a, b) => {
-      const dateA = a.createdAtRaw ? new Date(a.createdAtRaw).getTime() : 0;
-      const dateB = b.createdAtRaw ? new Date(b.createdAtRaw).getTime() : 0;
-      return dateB - dateA;
-    })
-    .map(({ createdAtRaw, ...rest }) => rest); // Remove the temporary sorting field
+    allArticles = [...debatesFormatted, ...articlesFormatted]
+      .sort((a, b) => {
+        const dateA = a.createdAtRaw ? new Date(a.createdAtRaw).getTime() : 0;
+        const dateB = b.createdAtRaw ? new Date(b.createdAtRaw).getTime() : 0;
+        return dateB - dateA;
+      })
+      .map(({ createdAtRaw, ...rest }) => rest); // Remove the temporary sorting field
+  } catch (error) {
+    console.error('Failed to load articles for home page', error);
+    return emptyResponse;
+  }
 
   const featuredArticle = allArticles[0] || null;
   const latestArticles = allArticles.slice(1, 5);
@@ -195,8 +208,8 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
 
   return {
     props: {
-      lng: params?.lng || 'en',
-      ...(await serverSideTranslations(params?.lng as string || 'en', ['common', 'articles'])),
+      lng,
+      ...translations,
       featuredArticle,
       latestArticles,
       trendingArticles,

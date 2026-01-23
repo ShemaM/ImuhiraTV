@@ -82,6 +82,10 @@ export default function BlogPost({ article }: ArticleProps) {
 }
 
 export const getServerSideProps: GetServerSideProps = async ({ params }) => {
+  if (!process.env.DATABASE_URL) {
+    return { notFound: true };
+  }
+
   const slug = params?.slug as string;
 
   const [data] = await db

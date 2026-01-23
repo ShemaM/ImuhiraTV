@@ -14,7 +14,9 @@ const nextConfig: NextConfig = {
     ],
   },
   // Turbopack triggers EPERM rename issues on Windows; disable to fall back to webpack dev server.
-  turbopack: false,
+  turbopack: {
+    enabled: false,
+  },
   webpack: (config) => {
     config.resolve.alias["next-i18next"] = path.resolve(__dirname, "lib/noop-i18n.ts");
     config.resolve.alias["next-i18next/serverSideTranslations"] = path.resolve(

@@ -3,6 +3,9 @@ import { db } from '../../../db';
 import { articles } from '../../../db/schema';
 import { desc, eq } from 'drizzle-orm';
 
+const DEFAULT_AUTHOR = 'Imuhira Staff';
+const DEFAULT_CATEGORY = { name: 'News', href: '/category/news' };
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {
     try {
@@ -15,13 +18,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       
       const serialized = allArticles.map(a => ({
         ...a,
-        author_name: 'Imuhira Staff',
+        author_name: DEFAULT_AUTHOR,
         summary: a.content || a.excerpt || '',
-        category: {
-          name: 'News',
-          href: '/category/news',
-        },
-        content: a.content ? [a.content] : [],
+        category: DEFAULT_CATEGORY,
+        content: a.content || '',
         excerpt: a.excerpt || (a.content ? a.content.slice(0, 150) : ''),
       }));
 

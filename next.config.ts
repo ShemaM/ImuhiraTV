@@ -13,7 +13,8 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  // Add turbopack config to avoid Turbopack/webpack conflicts
+  // Turbopack is enabled to keep parity with Next.js defaults while still allowing
+  // the custom webpack aliases below. Remove this override once translations are restored.
   turbopack: {},
   webpack: (config) => {
     config.resolve.alias["next-i18next"] = path.resolve(__dirname, "lib/noop-i18n.ts");

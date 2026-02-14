@@ -88,7 +88,7 @@ export default function AdBanner({ type, ads = defaultAds }: AdBannerProps) {
             src={ad.image}
             alt={ad.title}
             fill
-            className="object-contain p-4 transition-transform duration-300 group-hover:scale-105"
+            className="object-cover transition-transform duration-300 group-hover:scale-105"
             unoptimized
           />
           <div className="absolute top-2 right-2 bg-slate-900/70 text-white text-[8px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider">

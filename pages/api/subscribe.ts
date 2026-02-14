@@ -35,7 +35,8 @@ export default async function handler(
 
   try {
     // Only import db when DATABASE_URL is available
-    const { db, subscribers } = await import('../../db');
+    const { db } = await import('../../db');
+    const { subscribers } = await import('../../db/schema');
     
     // Check if email already exists
     const existing = await db

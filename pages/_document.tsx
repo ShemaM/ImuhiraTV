@@ -17,7 +17,10 @@ class MyDocument extends Document<MyDocumentProps> {
     const { lng } = this.props;
     return (
       <Html lang={lng} dir={dir(lng)}>
-        <Head />
+        <Head>
+          <link rel="icon" href="/images/logo.jpg" />
+          <link rel="apple-touch-icon" href="/images/logo.jpg" />
+        </Head>
         <body>
           <Main />
           <NextScript />

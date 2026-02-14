@@ -8,24 +8,45 @@ interface SubscribeModalProps {
 
 export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps) {
   const [email, setEmail] = useState('');
-  const [status, setStatus] = useState<'idle' | 'loading' | 'success'>('idle');
+  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [message, setMessage] = useState('');
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setStatus('loading');
+    setMessage('');
     
-    // Simulate API call
-    setTimeout(() => {
-      setStatus('success');
-      // Optional: Close modal automatically after 2 seconds
-      setTimeout(() => {
-        onClose();
-        setStatus('idle');
-        setEmail('');
-      }, 2000);
-    }, 1500);
+    try {
+      const response = await fetch('/api/subscribe', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setStatus('success');
+        setMessage(data.message);
+        // Close modal automatically after 2 seconds
+        setTimeout(() => {
+          onClose();
+          setStatus('idle');
+          setEmail('');
+          setMessage('');
+        }, 2000);
+      } else {
+        setStatus('error');
+        setMessage(data.message || 'Something went wrong. Please try again.');
+      }
+    } catch {
+      setStatus('error');
+      setMessage('Failed to connect. Please try again later.');
+    }
   };
 
   return (
@@ -48,7 +69,7 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
               <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
             </div>
             <h3 className="text-2xl font-serif font-bold text-slate-900 mb-2">You&#39;re on the list.</h3>
-            <p className="text-slate-600">Thank you for supporting independent journalism.</p>
+            <p className="text-slate-600">{message || 'Thank you for supporting independent journalism.'}</p>
           </div>
         ) : (
           <>
@@ -56,6 +77,12 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
             <p className="text-slate-600 mb-6 text-sm">
               Get the weekly security dispatch delivered to your inbox every Monday morning.
             </p>
+
+            {status === 'error' && (
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded text-red-700 text-sm">
+                {message}
+              </div>
+            )}
 
             <form onSubmit={handleSubmit} className="flex flex-col gap-3">
               <input 

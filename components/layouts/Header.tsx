@@ -20,16 +20,13 @@ export default function Header({ onSearchClick, onSubscribeClick }: HeaderProps)
 
   const onLangChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newLocale = e.target.value;
-    const currentPathname = router.pathname;
-    const currentQuery = router.query;
+    const currentLng = (router.query.lng as string) || 'en';
     
-    // Replace the current lng parameter in the path
-    const newPath = currentPathname.replace(/\/\[lng\]/, `/${newLocale}`);
+    // Get the current path and replace the language prefix
+    const currentPath = router.asPath;
+    const newPath = currentPath.replace(`/${currentLng}`, `/${newLocale}`);
     
-    // Update the query to include the new lng
-    const newQuery = { ...currentQuery, lng: newLocale };
-    
-    router.push({ pathname: newPath, query: newQuery }, undefined, { shallow: false });
+    router.push(newPath);
   };
 
   return (
@@ -41,18 +38,10 @@ export default function Header({ onSearchClick, onSubscribeClick }: HeaderProps)
             <Image 
               src={SITE_LOGO} 
               alt={SITE_NAME}
-              width={48}
-              height={48}
-              className="h-12 w-12 md:h-14 md:w-14 object-contain rounded-sm"
+              width={64}
+              height={64}
+              className="h-14 w-14 md:h-16 md:w-16 object-contain rounded-sm"
             />
-            <div className="ml-2 flex flex-col">
-              <span className="text-lg md:text-xl font-black font-serif uppercase tracking-tighter leading-none text-slate-900 group-hover:text-red-700 transition-colors">
-                {SITE_NAME}
-              </span>
-              <span className="text-[9px] md:text-[10px] font-bold uppercase tracking-[0.15em] text-red-700 leading-none mt-0.5">
-                {t('Conflict Monitor')}
-              </span>
-            </div>
           </Link>
 
           {/* Desktop Nav - visible on sm screens and up for laptop support */}

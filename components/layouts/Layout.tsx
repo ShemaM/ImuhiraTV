@@ -21,8 +21,8 @@ export default function Layout({ children, title }: LayoutProps) {
   const pageTitle = title ? `${title} | ${SITE_NAME}` : SITE_NAME;
 
   return (
-    // changed bg-gray-50 to bg-[#FDFBF7] to match the "Newspaper" aesthetic
-    <div className="min-h-screen bg-[#FDFBF7] font-sans text-slate-900 flex flex-col selection:bg-red-100 selection:text-red-900">
+    // Softer background with subtle gradient using brand color shades
+    <div className="min-h-screen bg-gradient-to-b from-white via-slate-50/50 to-red-50/20 font-sans text-slate-900 flex flex-col selection:bg-red-100 selection:text-red-900">
       
       <Head>
         <title>{pageTitle}</title>

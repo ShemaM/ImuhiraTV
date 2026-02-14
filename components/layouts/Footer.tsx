@@ -2,12 +2,14 @@ import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
+import { useTranslation } from 'next-i18next';
 import { SITE_LOGO } from '../../constants/site';
 
 export default function Footer() {
   const router = useRouter();
   const lng = (router.query.lng as string) || 'en';
   const currentYear = new Date().getFullYear();
+  const { t } = useTranslation('common');
   
   const [email, setEmail] = useState('');
   const [subscribeStatus, setSubscribeStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
@@ -60,38 +62,38 @@ export default function Footer() {
               />
             </Link>
             <p className="mt-4 text-sm text-gray-400 leading-relaxed">
-              A platform dedicated to the Banyamulenge community — sharing stories, preserving culture, and amplifying voices that deserve to be heard.
+              {t('footer.description')}
             </p>
           </div>
 
           {/* COLUMN 2: SECTIONS */}
           <div>
-            <h3 className="text-sm font-bold text-gray-200 tracking-wider uppercase mb-4">Explore</h3>
+            <h3 className="text-sm font-bold text-gray-200 tracking-wider uppercase mb-4">{t('footer.sections')}</h3>
             <ul className="space-y-3">
-              <li><Link href={`/${lng}/category/history`} className="text-gray-400 hover:text-white transition text-sm">History</Link></li>
-              <li><Link href={`/${lng}/category/culture`} className="text-gray-400 hover:text-white transition text-sm">Culture</Link></li>
-              <li><Link href={`/${lng}/category/conflict`} className="text-gray-400 hover:text-white transition text-sm">Conflict</Link></li>
-              <li><Link href={`/${lng}/category/stories`} className="text-gray-400 hover:text-white transition text-sm">Stories</Link></li>
+              <li><Link href={`/${lng}/category/history`} className="text-gray-400 hover:text-white transition text-sm">{t('footer.history')}</Link></li>
+              <li><Link href={`/${lng}/category/culture`} className="text-gray-400 hover:text-white transition text-sm">{t('footer.culture')}</Link></li>
+              <li><Link href={`/${lng}/category/conflict`} className="text-gray-400 hover:text-white transition text-sm">{t('footer.conflict')}</Link></li>
+              <li><Link href={`/${lng}/category/stories`} className="text-gray-400 hover:text-white transition text-sm">{t('footer.stories')}</Link></li>
             </ul>
           </div>
 
           {/* COLUMN 3: COMPANY */}
           <div>
-            <h3 className="text-sm font-bold text-gray-200 tracking-wider uppercase mb-4">Company</h3>
+            <h3 className="text-sm font-bold text-gray-200 tracking-wider uppercase mb-4">{t('footer.support')}</h3>
             <ul className="space-y-3">
-              <li><Link href={`/${lng}/about`} className="text-gray-400 hover:text-white transition text-sm">About Us</Link></li>
-              <li><Link href={`/${lng}/our-stance`} className="text-gray-400 hover:text-white transition text-sm">Our Stance</Link></li>
-              <li><Link href={`/${lng}/contact`} className="text-gray-400 hover:text-white transition text-sm">Contact</Link></li>
-              <li><Link href={`/${lng}/privacy`} className="text-gray-400 hover:text-white transition text-sm">Privacy Policy</Link></li>
-              <li><Link href={`/${lng}/terms`} className="text-gray-400 hover:text-white transition text-sm">Terms of Service</Link></li>
+              <li><Link href={`/${lng}/about`} className="text-gray-400 hover:text-white transition text-sm">{t('footer.about')}</Link></li>
+              <li><Link href={`/${lng}/our-stance`} className="text-gray-400 hover:text-white transition text-sm">{t('footer.ourStance')}</Link></li>
+              <li><Link href={`/${lng}/contact`} className="text-gray-400 hover:text-white transition text-sm">{t('footer.contact')}</Link></li>
+              <li><Link href={`/${lng}/privacy`} className="text-gray-400 hover:text-white transition text-sm">{t('footer.privacy')}</Link></li>
+              <li><Link href={`/${lng}/terms`} className="text-gray-400 hover:text-white transition text-sm">{t('footer.terms')}</Link></li>
             </ul>
           </div>
 
           {/* COLUMN 4: NEWSLETTER */}
           <div>
-            <h3 className="text-sm font-bold text-gray-200 tracking-wider uppercase mb-4">Stay Informed</h3>
+            <h3 className="text-sm font-bold text-gray-200 tracking-wider uppercase mb-4">{t('footer.briefing')}</h3>
             <p className="text-xs text-gray-400 mb-4">
-              Get the latest news and updates delivered directly to your inbox. Join our community.
+              {t('footer.newsletterPrompt')}
             </p>
             {subscribeStatus === 'success' ? (
               <div className="p-3 bg-green-900/50 border border-green-700 rounded text-green-300 text-sm">
@@ -109,7 +111,7 @@ export default function Footer() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Enter your email"
+                  placeholder={t('footer.emailPlaceholder')}
                   className="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded px-3 py-2 focus:outline-none focus:border-red-600"
                 />
                 <button 
@@ -117,7 +119,7 @@ export default function Footer() {
                   disabled={subscribeStatus === 'loading'}
                   className="bg-red-600 text-white text-xs font-bold py-2 rounded hover:bg-red-700 transition-colors uppercase tracking-wide disabled:opacity-70 disabled:cursor-wait"
                 >
-                  {subscribeStatus === 'loading' ? 'Subscribing...' : 'Subscribe Now'}
+                  {subscribeStatus === 'loading' ? t('footer.subscribe') + '...' : t('footer.subscribe')}
                 </button>
               </form>
             )}
@@ -127,10 +129,10 @@ export default function Footer() {
         {/* BOTTOM BAR */}
         <div className="mt-12 pt-8 border-t border-slate-800 flex flex-col md:flex-row justify-between items-center">
           <p className="text-xs text-slate-500 uppercase">
-            &copy; {currentYear} Imuhira TV. All rights reserved.
+            &copy; {currentYear} Imuhira TV.
           </p>
           <p className="text-xs text-slate-500 uppercase mt-2 md:mt-0">
-            A Voice for the Voiceless
+            {t('footer.tagline')}
           </p>
         </div>
       </div>

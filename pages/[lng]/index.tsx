@@ -71,9 +71,27 @@ export default function Home({ featuredArticle, latestArticles, trendingArticles
           />
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {latestArticles.map((article) => (
-              <ArticleCard key={article.id} article={article} lng={lng} />
-            ))}
+            {latestArticles.length > 0 ? (
+              latestArticles.map((article) => (
+                <ArticleCard key={article.id} article={article} lng={lng} />
+              ))
+            ) : (
+              <div className="col-span-full py-16 text-center bg-gradient-to-br from-slate-50 to-red-50/30 rounded-lg border border-slate-100">
+                <div className="max-w-md mx-auto">
+                  <div className="w-16 h-16 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
+                    <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-serif font-bold text-slate-900 mb-2">
+                    {t('No articles found in', { ns: 'common' })} {t('Latest News', { ns: 'common' })}
+                  </h3>
+                  <p className="text-sm text-slate-500">
+                    {t('Articles and debates for this category are coming soon. Check back later or subscribe to our newsletter to be notified when new content is published.', { ns: 'common' })}
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 

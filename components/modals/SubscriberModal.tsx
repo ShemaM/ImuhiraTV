@@ -73,9 +73,9 @@ export default function SubscribeModal({ isOpen, onClose }: SubscribeModalProps)
           </div>
         ) : (
           <>
-            <h3 className="text-2xl font-serif font-bold text-slate-900 mb-2">The Kivu Briefing</h3>
+            <h3 className="text-2xl font-serif font-bold text-slate-900 mb-2">Imuhira TV</h3>
             <p className="text-slate-600 mb-6 text-sm">
-              Get the weekly security dispatch delivered to your inbox every Monday morning.
+              Get the latest news and updates delivered to your inbox.
             </p>
 
             {status === 'error' && (

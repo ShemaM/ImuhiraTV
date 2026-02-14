@@ -36,9 +36,10 @@
     ".next/types/**/*.ts",
     "**/*.mts",
     ".next/dev/types/**/*.ts",
-    "proxy.ts"
+    "middleware.ts"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "drizzle.config.ts"
   ]
 }

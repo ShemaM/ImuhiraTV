@@ -334,7 +334,10 @@ export const getServerSideProps: GetServerSideProps = async ({ params, locale })
                 href: `/${lng}/category/${(a.category || 'news').toLowerCase()}`
             },
             content: [],
-            excerpt: getLocalizedField(a, 'summary', lng).slice(0, 100) + '...',
+            excerpt: (() => {
+                const summary = getLocalizedField(a, 'summary', lng);
+                return summary ? summary.slice(0, 100) + '...' : '';
+            })(),
             publishedAt: a.createdAt ? a.createdAt.toISOString() : null,
             createdAt: a.createdAt ? a.createdAt.toISOString() : null,
         };

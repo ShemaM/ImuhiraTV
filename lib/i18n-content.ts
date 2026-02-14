@@ -5,12 +5,20 @@
 
 type LanguageCode = 'en' | 'fr' | 'sw' | 'ki';
 
-// Mapping from locale codes to database field suffixes
+/**
+ * Mapping from URL locale codes to database field suffixes.
+ * - 'en' (English): No suffix - uses base field (e.g., 'title')
+ * - 'fr' (French): Uses 'Fr' suffix (e.g., 'titleFr')
+ * - 'sw' (Swahili): Uses 'Sw' suffix (e.g., 'titleSw')
+ * - 'ki' (Kinyamulenge): Uses 'Kym' suffix (e.g., 'titleKym')
+ * 
+ * Note: 'ki' is the URL/locale code while 'Kym' is the database field suffix
+ */
 const LANGUAGE_SUFFIX_MAP: Record<LanguageCode, string> = {
   en: '',      // English is the default, no suffix
   fr: 'Fr',    // French
   sw: 'Sw',    // Swahili
-  ki: 'Kym',   // Kinyamulenge
+  ki: 'Kym',   // Kinyamulenge (URL code 'ki' maps to DB suffix 'Kym')
 };
 
 /**

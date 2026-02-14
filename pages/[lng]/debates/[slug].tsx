@@ -15,6 +15,7 @@ import AdBanner from '../../../components/common/AdBanner';
 import { db, debates } from '../../../db';
 import { eq, desc } from 'drizzle-orm';
 import { isValidYouTubeVideoId, isValidImageUrl } from '../../../lib/url-validation';
+import { getLocalizedDebate, getLocalizedField } from '../../../lib/i18n-content';
 
 // Types
 interface TrendingArticle {

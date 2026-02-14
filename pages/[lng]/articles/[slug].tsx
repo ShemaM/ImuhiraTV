@@ -22,6 +22,7 @@ import {
   isValidImageUrl,
   extractAndValidateYouTubeVideoId 
 } from '../../../lib/url-validation';
+import { getLocalizedArticle, getLocalizedDebate } from '../../../lib/i18n-content';
 
 const PLACEHOLDER_IMAGE = '/images/logo.jpg';
 const PLACEHOLDER_AUTHOR = 'Imuhira Staff';
@@ -236,17 +237,20 @@ export const getStaticProps: GetStaticProps = async ({ params, locale }) => {
         : '';
       const validatedVideoId = extractAndValidateYouTubeVideoId(articleFromArticles.videoUrl);
 
+      // Get localized content based on current locale
+      const localizedContent = getLocalizedArticle(articleFromArticles, currentLocale);
+
       article = {
         id: articleFromArticles.id,
-        title: articleFromArticles.title,
+        title: localizedContent.title,
         slug: articleFromArticles.slug || '',
         mainImageUrl: validatedCoverImage,
         authorName: 'Imuhira Staff',
         publishedAt: formatDate(articleFromArticles.createdAt),
         youtubeVideoId: validatedVideoId,
         category: { name: 'News', href: `/${currentLocale}/category/news` },
-        content: articleFromArticles.content || '',
-        excerpt: articleFromArticles.excerpt || (articleFromArticles.content?.replace(/<[^>]+>/g, '').slice(0, 150) + '...'),
+        content: localizedContent.content,
+        excerpt: localizedContent.excerpt || (localizedContent.content?.replace(/<[^>]+>/g, '').slice(0, 150) + '...'),
       };
     } else {
       // 2. Check Debates Table
@@ -265,9 +269,12 @@ export const getStaticProps: GetStaticProps = async ({ params, locale }) => {
           ? youtubeVideoId 
           : null;
 
+        // Get localized content based on current locale
+        const localizedDebate = getLocalizedDebate(articleFromDebates, currentLocale);
+
         article = {
           id: articleFromDebates.id,
-          title: articleFromDebates.title,
+          title: localizedDebate.title,
           slug: articleFromDebates.slug || '',
           mainImageUrl: validatedMainImageUrl,
           authorName: 'Imuhira Staff',
@@ -277,12 +284,12 @@ export const getStaticProps: GetStaticProps = async ({ params, locale }) => {
             name: articleFromDebates.category || 'Politics',
             href: `/${currentLocale}/category/${(articleFromDebates.category || 'politics').toLowerCase()}`,
           },
-          content: articleFromDebates.summary || '',
-          excerpt: articleFromDebates.summary?.replace(/<[^>]+>/g, '').slice(0, 150) + '...',
+          content: localizedDebate.summary,
+          excerpt: localizedDebate.summary?.replace(/<[^>]+>/g, '').slice(0, 150) + '...',
           faction1Label: articleFromDebates.proposerName,
           faction2Label: articleFromDebates.opposerName,
-          faction1Arguments: articleFromDebates.proposerArguments,
-          faction2Arguments: articleFromDebates.opposerArguments,
+          faction1Arguments: localizedDebate.proposerArguments,
+          faction2Arguments: localizedDebate.opposerArguments,
         };
       }
     }

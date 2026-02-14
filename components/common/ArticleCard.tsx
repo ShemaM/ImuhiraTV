@@ -13,6 +13,7 @@ interface ArticleProps {
     category: { name: string; slug?: string };
     published_at: string;
     author_name?: string;
+    youtube_video_id?: string;
   };
   lng: string;
 }
@@ -36,22 +37,47 @@ export default function ArticleCard({ article, lng }: ArticleProps) {
   // Translate category name
   const translatedCategory = t(article.category?.name || 'News', { ns: 'common' });
 
+  // Determine if article has YouTube video
+  const hasYouTubeVideo = !!article.youtube_video_id;
+  const youtubeUrl = hasYouTubeVideo 
+    ? `https://www.youtube.com/watch?v=${article.youtube_video_id}` 
+    : null;
+
   return (
     <div className="group flex flex-col h-full">
       {/* Image Container - Linked */}
-      <Link href={validUrl} className="block relative aspect-4/3 w-full bg-slate-100 overflow-hidden rounded-sm mb-4">
-        <Image 
-          src={article.main_image_url} 
-          alt={displayTitle}
-          fill
-          className="object-cover transition-transform duration-700 group-hover:scale-105"
-          unoptimized
-        />
+      <div className="relative aspect-4/3 w-full bg-slate-100 overflow-hidden rounded-sm mb-4">
+        <Link href={validUrl} className="block w-full h-full">
+          <Image 
+            src={article.main_image_url} 
+            alt={displayTitle}
+            fill
+            className="object-cover transition-transform duration-700 group-hover:scale-105"
+            unoptimized
+          />
+        </Link>
         {/* Badge */}
         <div className="absolute top-2 left-2 z-10">
           <Badge label={translatedCategory} />
         </div>
-      </Link>
+        
+        {/* YouTube Hover Overlay */}
+        {hasYouTubeVideo && youtubeUrl && (
+          <a 
+            href={youtubeUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20"
+          >
+            <div className="flex items-center gap-2 bg-red-600 text-white px-4 py-2 rounded-full font-bold text-sm shadow-lg transform group-hover:scale-105 transition-transform">
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+              </svg>
+              {t('watchOnYouTube', { ns: 'common' })}
+            </div>
+          </a>
+        )}
+      </div>
 
       {/* Content */}
       <div className="flex flex-col grow">

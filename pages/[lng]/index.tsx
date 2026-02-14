@@ -8,6 +8,7 @@ import HeroArticle from '../../components/common/HeroArticle';
 import ArticleCard from '../../components/common/ArticleCard';
 import SectionHeader from '../../components/common/SectionHeader';
 import TrendingWidget from '../../components/common/TrendingWidget';
+import AdBanner from '../../components/common/AdBanner';
 import Layout from '../../components/layouts/Layout';
 import { languages } from '../../i18n/settings';
 import { db } from '../../db';
@@ -79,11 +80,8 @@ export default function Home({ featuredArticle, latestArticles, trendingArticles
           {/* Note: Ensure TrendingWidget accepts the ArticleUI shape */}
           <TrendingWidget articles={trendingArticles} lng={lng} />
 
-          {/* Advertisement Placeholder */}
-          <div className="bg-gray-100 h-64 rounded-lg flex flex-col items-center justify-center text-gray-400 text-sm border-2 border-dashed border-gray-300">
-            <span className="font-bold">{t('Advertisement')}</span>
-            <span className="text-xs">300x250</span>
-          </div>
+          {/* Advertisement Section */}
+          <AdBanner type="sidebar" />
 
           {/* Newsletter */}
           <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">

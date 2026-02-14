@@ -75,15 +75,17 @@ export default function Home({ featuredArticle, latestArticles, trendingArticles
               <ArticleCard key={article.id} article={article} lng={lng} />
             ))}
           </div>
+
+          {/* Advertisement Section - in same column as Latest News */}
+          <div className="mt-8">
+            <AdBanner type="banner" />
+          </div>
         </div>
 
         {/* 3. SIDEBAR (Right, 1/3 width) */}
         <Sidebar>
           {/* Note: Ensure TrendingWidget accepts the ArticleUI shape */}
           <TrendingWidget articles={trendingArticles} lng={lng} />
-
-          {/* Advertisement Section */}
-          <AdBanner type="sidebar" />
 
           {/* Newsletter */}
           <SubscribeWidget variant="light" />

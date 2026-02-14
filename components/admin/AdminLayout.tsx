@@ -68,7 +68,7 @@ export default function AdminLayout({ children, title }: AdminLayoutProps) {
         </nav>
         <div className="p-4 border-t border-slate-800">
           {/* Note: Admin panel links to default English homepage. In production, this could detect user's language preference. */}
-          <Link href="/en/" className="flex items-center space-x-3 px-4 py-2 text-red-400 hover:text-red-300 w-full transition-colors">
+          <Link href="/en" className="flex items-center space-x-3 px-4 py-2 text-red-400 hover:text-red-300 w-full transition-colors">
             <ArrowLeftOnRectangleIcon className="h-6 w-6" />
             <span className="font-medium">Exit to Site</span>
           </Link>

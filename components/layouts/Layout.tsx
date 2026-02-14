@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import Head from 'next/head'; // Optional: Good for SEO
 import Header from './Header';
 import Footer from './Footer';
+import Breadcrumbs from '../common/Breadcrumbs';
 import SearchModal from '../modals/SearchModal';     // Ensure you created this file
 import SubscribeModal from '../modals/SubscriberModal'; // Ensure you created this file
 import { SITE_NAME } from '../../constants/site';
@@ -36,6 +37,7 @@ export default function Layout({ children, title }: LayoutProps) {
       
       {/* Main Content Area */}
       <main className="max-w-7xl mx-auto w-full px-4 py-8 md:py-12 grow">
+        <Breadcrumbs />
         {children}
       </main>
       

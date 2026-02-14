@@ -18,15 +18,23 @@ export default function Header({ onSearchClick, onSubscribeClick }: HeaderProps)
   const { t } = useTranslation('common');
   const router = useRouter();
 
+  /**
+   * Language Switcher Handler
+   * Replaces the [lng] segment in the current path with the new locale.
+   * Uses router.pathname (with [lng] placeholder) and router.query to rebuild the URL.
+   */
   const onLangChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newLocale = e.target.value;
-    const currentLng = (router.query.lng as string) || 'en';
     
-    // Get the current path and replace the language prefix
-    const currentPath = router.asPath;
-    const newPath = currentPath.replace(`/${currentLng}`, `/${newLocale}`);
+    // Build new query object with updated lng parameter
+    const newQuery = { ...router.query, lng: newLocale };
     
-    router.push(newPath);
+    // Use router.push with pathname template and updated query
+    // This preserves all other query params and path segments
+    router.push({
+      pathname: router.pathname,
+      query: newQuery,
+    });
   };
 
   return (

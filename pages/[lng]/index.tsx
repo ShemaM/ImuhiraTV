@@ -108,19 +108,83 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
   const lng = (params?.lng as string) || 'en';
   const translations = await serverSideTranslations(lng, ['common', 'articles']);
 
-  const emptyResponse = {
-    props: {
-      lng,
-      ...translations,
-      featuredArticle: null,
-      latestArticles: [],
-      trendingArticles: [],
+  // Static fallback articles for when database is not configured
+  // These use slugs that match translation keys in articles.json
+  const staticArticles: ArticleUI[] = [
+    {
+      id: 'static-1',
+      title: 'banyamulenge-history-resilience-conflict',
+      slug: 'banyamulenge-history-resilience-conflict',
+      excerpt: '',
+      main_image_url: '/images/placeholder.jpg',
+      published_at: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }),
+      author_name: 'Imuhira Staff',
+      category: { name: 'History', slug: 'history' },
     },
-    revalidate: 60,
-  };
+    {
+      id: 'static-2',
+      title: 'twirwaneho-m23-alliance',
+      slug: 'twirwaneho-m23-alliance',
+      excerpt: '',
+      main_image_url: '/images/placeholder.jpg',
+      published_at: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }),
+      author_name: 'Imuhira Staff',
+      category: { name: 'Conflict', slug: 'conflict' },
+    },
+    {
+      id: 'static-3',
+      title: 'akagara-pro-government-perspective',
+      slug: 'akagara-pro-government-perspective',
+      excerpt: '',
+      main_image_url: '/images/placeholder.jpg',
+      published_at: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }),
+      author_name: 'Imuhira Staff',
+      category: { name: 'Politics', slug: 'politics' },
+    },
+    {
+      id: 'static-4',
+      title: 'minembwe-humanitarian-crisis',
+      slug: 'minembwe-humanitarian-crisis',
+      excerpt: '',
+      main_image_url: '/images/placeholder.jpg',
+      published_at: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }),
+      author_name: 'Imuhira Staff',
+      category: { name: 'Humanitarian', slug: 'humanitarian' },
+    },
+    {
+      id: 'static-5',
+      title: 'idubu-self-defense-rebellion',
+      slug: 'idubu-self-defense-rebellion',
+      excerpt: '',
+      main_image_url: '/images/placeholder.jpg',
+      published_at: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }),
+      author_name: 'Imuhira Staff',
+      category: { name: 'Debate', slug: 'debate' },
+    },
+    {
+      id: 'static-6',
+      title: 'banyamulenge-congo-wars-alliances',
+      slug: 'banyamulenge-congo-wars-alliances',
+      excerpt: '',
+      main_image_url: '/images/placeholder.jpg',
+      published_at: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }),
+      author_name: 'Imuhira Staff',
+      category: { name: 'History', slug: 'history' },
+    },
+  ];
 
+  // Use static fallback when database is not configured
   if (!process.env.DATABASE_URL) {
-    return emptyResponse;
+    return {
+      props: {
+        lng,
+        ...translations,
+        featuredArticle: staticArticles[0] || null,
+        latestArticles: staticArticles.slice(1, 5),
+        trendingArticles: staticArticles.slice(0, 5),
+      },
+      revalidate: 60,
+    };
   }
 
   // Fetch published debates

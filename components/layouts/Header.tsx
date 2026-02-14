@@ -1,7 +1,8 @@
 // components/layouts/Header.tsx
 import { useState } from 'react';
 import Link from 'next/link';
-import { NAV_LINKS, SITE_NAME } from '../../constants/site';
+import Image from 'next/image';
+import { NAV_LINKS, SITE_LOGO, SITE_NAME } from '../../constants/site';
 import { useTranslation } from 'next-i18next';
 import { useRouter } from 'next/router';
 
@@ -36,13 +37,22 @@ export default function Header({ onSearchClick, onSubscribeClick }: HeaderProps)
       <div className="max-w-7xl mx-auto px-4">
         <div className="h-20 flex items-center justify-between">
           
-          <Link href={`/${router.query.lng || 'en'}/`} className="flex flex-col group">
-            <span className="text-2xl md:text-3xl font-black font-serif uppercase tracking-tighter leading-none text-slate-900 group-hover:text-red-700 transition-colors">
-              {SITE_NAME}
-            </span>
-            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-red-700 leading-none mt-1">
-              {t('Conflict Monitor')}
-            </span>
+          <Link href={`/${router.query.lng || 'en'}/`} className="flex items-center group">
+            <Image 
+              src={SITE_LOGO} 
+              alt={SITE_NAME}
+              width={48}
+              height={48}
+              className="h-12 w-12 md:h-14 md:w-14 object-contain rounded-sm"
+            />
+            <div className="ml-2 flex flex-col">
+              <span className="text-lg md:text-xl font-black font-serif uppercase tracking-tighter leading-none text-slate-900 group-hover:text-red-700 transition-colors">
+                {SITE_NAME}
+              </span>
+              <span className="text-[9px] md:text-[10px] font-bold uppercase tracking-[0.15em] text-red-700 leading-none mt-0.5">
+                {t('Conflict Monitor')}
+              </span>
+            </div>
           </Link>
 
           {/* Desktop Nav - visible on sm screens and up for laptop support */}

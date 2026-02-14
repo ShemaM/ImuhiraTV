@@ -2,6 +2,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import Badge from './Badge';
+import YouTubeIcon from './YouTubeIcon';
 import { useTranslation } from 'next-i18next';
 
 interface ArticleProps {
@@ -13,6 +14,7 @@ interface ArticleProps {
     category: { name: string; slug?: string };
     published_at: string;
     author_name?: string;
+    youtube_video_id?: string;
   };
   lng: string;
 }
@@ -36,22 +38,45 @@ export default function ArticleCard({ article, lng }: ArticleProps) {
   // Translate category name
   const translatedCategory = t(article.category?.name || 'News', { ns: 'common' });
 
+  // Determine if article has YouTube video
+  const hasYouTubeVideo = !!article.youtube_video_id;
+  const youtubeUrl = hasYouTubeVideo 
+    ? `https://www.youtube.com/watch?v=${article.youtube_video_id}` 
+    : null;
+
   return (
     <div className="group flex flex-col h-full">
       {/* Image Container - Linked */}
-      <Link href={validUrl} className="block relative aspect-4/3 w-full bg-slate-100 overflow-hidden rounded-sm mb-4">
-        <Image 
-          src={article.main_image_url} 
-          alt={displayTitle}
-          fill
-          className="object-cover transition-transform duration-700 group-hover:scale-105"
-          unoptimized
-        />
+      <div className="relative aspect-4/3 w-full bg-slate-100 overflow-hidden rounded-sm mb-4">
+        <Link href={validUrl} className="block w-full h-full">
+          <Image 
+            src={article.main_image_url} 
+            alt={displayTitle}
+            fill
+            className="object-cover transition-transform duration-700 group-hover:scale-105"
+            unoptimized
+          />
+        </Link>
         {/* Badge */}
         <div className="absolute top-2 left-2 z-10">
           <Badge label={translatedCategory} />
         </div>
-      </Link>
+        
+        {/* YouTube Hover Overlay */}
+        {hasYouTubeVideo && youtubeUrl && (
+          <a 
+            href={youtubeUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20"
+          >
+            <div className="flex items-center gap-2 bg-red-600 text-white px-4 py-2 rounded-full font-bold text-sm shadow-lg transform group-hover:scale-105 transition-transform">
+              <YouTubeIcon className="w-5 h-5" />
+              {t('watchOnYouTube', { ns: 'common' })}
+            </div>
+          </a>
+        )}
+      </div>
 
       {/* Content */}
       <div className="flex flex-col grow">

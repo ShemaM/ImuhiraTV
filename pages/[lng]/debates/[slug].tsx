@@ -11,6 +11,7 @@ import Layout from '../../../components/layouts/Layout';
 import Sidebar from '../../../components/layouts/Sidebar';
 import TrendingWidget from '../../../components/common/TrendingWidget';
 import Badge from '../../../components/common/Badge';
+import AdBanner from '../../../components/common/AdBanner';
 import { db, debates } from '../../../db';
 import { eq, desc } from 'drizzle-orm';
 import { isValidYouTubeVideoId, isValidImageUrl } from '../../../lib/url-validation';
@@ -252,9 +253,7 @@ export default function DebatePage({ debate, trendingArticles }: DebateProps) {
         <Sidebar>
           <TrendingWidget articles={trendingArticles} lng={currentLanguage} />
           
-          <div className="bg-slate-100 aspect-square w-full rounded-sm flex flex-col items-center justify-center text-slate-400 text-sm border-2 border-dashed border-slate-300">
-             <span className="font-bold">{t('Advertisement')}</span>
-          </div>
+          <AdBanner type="sidebar" />
         </Sidebar>
 
       </div>

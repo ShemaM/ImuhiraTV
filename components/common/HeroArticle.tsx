@@ -2,6 +2,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import Badge from './Badge';
+import YouTubeIcon from './YouTubeIcon';
 import { useTranslation } from 'next-i18next';
 
 interface HeroArticleProps {
@@ -13,7 +14,8 @@ interface HeroArticleProps {
     category: { name: string };
     author_name: string;
     published_at: string;
-    href?: string; 
+    href?: string;
+    youtube_video_id?: string;
   };
   lng: string;
 }
@@ -36,24 +38,47 @@ export default function HeroArticle({ article, lng }: HeroArticleProps) {
   // Translate category name
   const translatedCategory = t(article.category?.name || 'News', { ns: 'common' });
 
+  // Determine if article has YouTube video
+  const hasYouTubeVideo = !!article.youtube_video_id;
+  const youtubeUrl = hasYouTubeVideo 
+    ? `https://www.youtube.com/watch?v=${article.youtube_video_id}` 
+    : null;
+
   return (
     <section className="mb-12 border-b border-slate-200 pb-12">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10">
         
         {/* 1. IMAGE COLUMN */}
-        <div className="lg:col-span-8">
-          <Link href={validUrl} className="group block relative h-[300px] md:h-[450px] overflow-hidden rounded-sm">
-            <Image 
-              src={article.main_image_url} 
-              alt={displayTitle}
-              fill
-              className="object-cover transition-transform duration-700 group-hover:scale-105"
-              unoptimized 
-            />
-            <div className="absolute bottom-0 left-0 bg-red-700 text-white text-[10px] md:text-xs font-bold px-3 py-1.5 uppercase tracking-widest">
+        <div className="lg:col-span-8 group">
+          <div className="relative h-[300px] md:h-[450px] overflow-hidden rounded-sm">
+            <Link href={validUrl} className="block w-full h-full">
+              <Image 
+                src={article.main_image_url} 
+                alt={displayTitle}
+                fill
+                className="object-cover transition-transform duration-700 group-hover:scale-105"
+                unoptimized 
+              />
+            </Link>
+            <div className="absolute bottom-0 left-0 bg-red-700 text-white text-[10px] md:text-xs font-bold px-3 py-1.5 uppercase tracking-widest z-10">
               {t('Featured Article', { ns: 'common' })}
             </div>
-          </Link>
+            
+            {/* YouTube Hover Overlay */}
+            {hasYouTubeVideo && youtubeUrl && (
+              <a 
+                href={youtubeUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20"
+              >
+                <div className="flex items-center gap-3 bg-red-600 text-white px-6 py-3 rounded-full font-bold text-base shadow-lg transform group-hover:scale-105 transition-transform">
+                  <YouTubeIcon className="w-6 h-6" />
+                  {t('watchOnYouTube', { ns: 'common' })}
+                </div>
+              </a>
+            )}
+          </div>
         </div>
 
         {/* 2. TEXT COLUMN */}

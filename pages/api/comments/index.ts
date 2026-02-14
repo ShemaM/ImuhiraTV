@@ -10,8 +10,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (req.method === 'GET') {
     const { debateId, articleId } = req.query;
 
-    // Require at least one identifier
-    if ((!debateId || typeof debateId !== 'string') && (!articleId || typeof articleId !== 'string')) {
+    // Require at least one identifier and ensure they are strings
+    const debateIdStr = typeof debateId === 'string' ? debateId : null;
+    const articleIdStr = typeof articleId === 'string' ? articleId : null;
+
+    if (!debateIdStr && !articleIdStr) {
       return res.status(400).json({ error: 'Missing debateId or articleId' });
     }
 
@@ -21,9 +24,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         .from(comments)
         .orderBy(desc(comments.createdAt));
 
-      const allComments = debateId
-        ? await query.where(eq(comments.debateId, debateId))
-        : await query.where(eq(comments.articleId, articleId as string));
+      const allComments = debateIdStr
+        ? await query.where(eq(comments.debateId, debateIdStr))
+        : await query.where(eq(comments.articleId, articleIdStr!));
 
       return res.status(200).json(allComments);
     } catch (error) {

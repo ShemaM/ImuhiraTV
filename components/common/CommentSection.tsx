@@ -207,6 +207,22 @@ export default function CommentSection({ debateId, articleId, showVerdict = true
     fetchComments();
   }, [fetchComments]);
 
+  // Helper function to create and add a mock comment
+  const addMockComment = () => {
+    const mockComment: Comment = {
+      id: `mock-${Date.now()}`,
+      parentId: replyingTo,
+      authorName,
+      content,
+      createdAt: new Date().toISOString(),
+      likes: 0,
+    };
+    setComments(prev => [mockComment, ...prev]);
+    setContent('');
+    setAuthorName('');
+    setReplyingTo(null);
+  };
+
   const handlePost = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!content.trim() || !authorName.trim()) return;
@@ -214,18 +230,7 @@ export default function CommentSection({ debateId, articleId, showVerdict = true
     const targetId = articleId ?? debateId;
     if (!targetId) {
       // Fallback: Use mock mode when no target ID is provided
-      const mockComment: Comment = {
-        id: `mock-${Date.now()}`,
-        parentId: replyingTo,
-        authorName,
-        content,
-        createdAt: new Date().toISOString(),
-        likes: 0,
-      };
-      setComments(prev => [mockComment, ...prev]);
-      setContent('');
-      setAuthorName('');
-      setReplyingTo(null);
+      addMockComment();
       return;
     }
 
@@ -250,33 +255,11 @@ export default function CommentSection({ debateId, articleId, showVerdict = true
         fetchComments(); 
       } else {
         // Fallback: Add mock comment on API error
-        const mockComment: Comment = {
-          id: `mock-${Date.now()}`,
-          parentId: replyingTo,
-          authorName,
-          content,
-          createdAt: new Date().toISOString(),
-          likes: 0,
-        };
-        setComments(prev => [mockComment, ...prev]);
-        setContent('');
-        setAuthorName('');
-        setReplyingTo(null);
+        addMockComment();
       }
     } catch {
       // Fallback: Add mock comment on network error
-      const mockComment: Comment = {
-        id: `mock-${Date.now()}`,
-        parentId: replyingTo,
-        authorName,
-        content,
-        createdAt: new Date().toISOString(),
-        likes: 0,
-      };
-      setComments(prev => [mockComment, ...prev]);
-      setContent('');
-      setAuthorName('');
-      setReplyingTo(null);
+      addMockComment();
     } finally {
       setLoading(false);
     }

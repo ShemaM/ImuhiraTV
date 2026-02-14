@@ -1,6 +1,7 @@
 // components/common/AdBanner.tsx
 import Image from 'next/image';
 import { useTranslation } from 'next-i18next';
+import { SITE_LOGO } from '../../constants/site';
 
 interface Ad {
   id: string;
@@ -18,7 +19,7 @@ interface AdBannerProps {
 const defaultAds: Ad[] = [
   {
     id: 'placeholder-1',
-    image: '/images/logo.jpg',
+    image: SITE_LOGO,
     link: '#',
     title: 'Advertisement',
   },

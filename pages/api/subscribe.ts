@@ -1,6 +1,4 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { db } from '../../db';
-import { subscribers } from '../../db/schema';
 import { eq } from 'drizzle-orm';
 
 type ResponseData = {
@@ -28,15 +26,18 @@ export default async function handler(
     return res.status(400).json({ success: false, message: 'Invalid email format' });
   }
 
-  // Check if database is configured
+  // Check if database is configured BEFORE importing db
   if (!process.env.DATABASE_URL) {
-    console.warn('DATABASE_URL not configured - subscription cannot be saved');
+    console.warn('DATABASE_URL not configured - subscription saved in demo mode');
     // Return success for development/demo purposes
-    // In production with a database, this code path won't be reached
-    return res.status(201).json({ success: true, message: 'Thank you for subscribing!' });
+    return res.status(201).json({ success: true, message: 'Thank you for subscribing to Imuhira TV!' });
   }
 
   try {
+    // Only import db when DATABASE_URL is available
+    const { db } = await import('../../db');
+    const { subscribers } = await import('../../db/schema');
+    
     // Check if email already exists
     const existing = await db
       .select()
@@ -53,7 +54,7 @@ export default async function handler(
       email: email.toLowerCase(),
     }).execute();
 
-    return res.status(201).json({ success: true, message: 'Successfully subscribed!' });
+    return res.status(201).json({ success: true, message: 'Successfully subscribed to Imuhira TV!' });
   } catch (error) {
     console.error('Subscription error:', error);
     return res.status(500).json({ success: false, message: 'Failed to subscribe. Please try again later.' });

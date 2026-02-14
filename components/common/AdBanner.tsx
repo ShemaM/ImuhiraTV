@@ -34,7 +34,7 @@ export default function AdBanner({ type, ads = defaultAds }: AdBannerProps) {
       <div 
         className={`
           bg-slate-100 flex flex-col items-center justify-center text-slate-400 text-sm border-2 border-dashed border-slate-300 rounded-lg
-          ${type === 'banner' ? 'h-24 md:h-32 w-full' : 'h-64 w-full aspect-square'}
+          ${type === 'banner' ? 'h-24 md:h-32 w-full' : 'aspect-video md:aspect-square w-full'}
         `}
       >
         <span className="font-bold">{t('Advertisement')}</span>
@@ -81,7 +81,7 @@ export default function AdBanner({ type, ads = defaultAds }: AdBannerProps) {
           href={ad.link}
           target="_blank"
           rel="noopener noreferrer"
-          className="block relative w-full aspect-square bg-slate-100 rounded-lg overflow-hidden group"
+          className="block relative w-full aspect-video md:aspect-square bg-slate-100 rounded-lg overflow-hidden group"
           title={ad.title}
         >
           <Image
@@ -93,11 +93,6 @@ export default function AdBanner({ type, ads = defaultAds }: AdBannerProps) {
           />
           <div className="absolute top-2 right-2 bg-slate-900/70 text-white text-[8px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider">
             {t('Advertisement')}
-          </div>
-          <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-            <div className="absolute bottom-3 left-3 right-3">
-              <p className="text-white text-sm font-bold truncate">{ad.title}</p>
-            </div>
           </div>
         </a>
       ))}

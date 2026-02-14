@@ -1,5 +1,4 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { db } from '../../../db';
 import { articles } from '../../../db/schema';
 import { desc, eq } from 'drizzle-orm';
 
@@ -8,7 +7,15 @@ const DEFAULT_CATEGORY = { name: 'News', href: '/category/news' };
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {
+    // Return empty array if database is not configured
+    if (!process.env.DATABASE_URL) {
+      return res.status(200).json([]);
+    }
+
     try {
+      // Dynamic import to avoid initialization errors when DATABASE_URL is not set
+      const { db } = await import('../../../db');
+      
       const allArticles = await db
         .select()
         .from(articles)

@@ -15,6 +15,7 @@ import { languages } from '../../i18n/settings';
 import { db } from '../../db';
 import { debates, articles } from '../../db/schema';
 import { desc, eq } from 'drizzle-orm';
+import { getLocalizedField } from '../../lib/i18n-content';
 // We define the interface locally to ensure it matches the mapping below exactly
 interface ArticleUI {
   id: string;
@@ -142,40 +143,49 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
       .execute();
 
   // Map debates to ArticleUI format
-    const debatesFormatted: ArticleWithRawDate[] = debatesRaw.map(a => ({
-      id: a.id,
-      title: a.title,
-      slug: a.slug || '',
-      excerpt: a.summary ? a.summary.replace(/<[^>]+>/g, '').slice(0, 150) + '...' : '',
-      main_image_url: a.mainImageUrl || '/images/placeholder.jpg',
-    published_at: a.createdAt 
-      ? new Date(a.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) 
-      : '',
-    author_name: 'Imuhira Staff',
-    category: { 
-      name: a.category || 'Politics', 
-      slug: (a.category || 'politics').toLowerCase() 
-    },
-    createdAtRaw: a.createdAt,
-  }));
+    const debatesFormatted: ArticleWithRawDate[] = debatesRaw.map(a => {
+      const localizedTitle = getLocalizedField(a, 'title', lng);
+      const localizedSummary = getLocalizedField(a, 'summary', lng);
+      return {
+        id: a.id,
+        title: localizedTitle,
+        slug: a.slug || '',
+        excerpt: localizedSummary ? localizedSummary.replace(/<[^>]+>/g, '').slice(0, 150) + '...' : '',
+        main_image_url: a.mainImageUrl || '/images/placeholder.jpg',
+        published_at: a.createdAt 
+          ? new Date(a.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) 
+          : '',
+        author_name: 'Imuhira Staff',
+        category: { 
+          name: a.category || 'Politics', 
+          slug: (a.category || 'politics').toLowerCase() 
+        },
+        createdAtRaw: a.createdAt,
+      };
+    });
 
   // Map articles to ArticleUI format
-    const articlesFormatted: ArticleWithRawDate[] = articlesRaw.map(a => ({
-      id: a.id,
-      title: a.title,
-      slug: a.slug || '',
-      excerpt: a.excerpt || (a.content ? a.content.replace(/<[^>]+>/g, '').slice(0, 150) + '...' : ''),
-      main_image_url: a.coverImage || '/images/placeholder.jpg',
-    published_at: a.createdAt 
-      ? new Date(a.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) 
-      : '',
-    author_name: 'Imuhira Staff',
-    category: { 
-      name: 'News', 
-      slug: 'news' 
-    },
-    createdAtRaw: a.createdAt,
-  }));
+    const articlesFormatted: ArticleWithRawDate[] = articlesRaw.map(a => {
+      const localizedTitle = getLocalizedField(a, 'title', lng);
+      const localizedExcerpt = getLocalizedField(a, 'excerpt', lng);
+      const localizedContent = getLocalizedField(a, 'content', lng);
+      return {
+        id: a.id,
+        title: localizedTitle,
+        slug: a.slug || '',
+        excerpt: localizedExcerpt || (localizedContent ? localizedContent.replace(/<[^>]+>/g, '').slice(0, 150) + '...' : ''),
+        main_image_url: a.coverImage || '/images/placeholder.jpg',
+        published_at: a.createdAt 
+          ? new Date(a.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) 
+          : '',
+        author_name: 'Imuhira Staff',
+        category: { 
+          name: 'News', 
+          slug: 'news' 
+        },
+        createdAtRaw: a.createdAt,
+      };
+    });
 
   // Combine and sort by creation date (newest first)
     allArticles = [...debatesFormatted, ...articlesFormatted]

@@ -15,6 +15,7 @@ import AdBanner from '../../../components/common/AdBanner';
 import { db, debates } from '../../../db';
 import { eq, desc } from 'drizzle-orm';
 import { isValidYouTubeVideoId, isValidImageUrl } from '../../../lib/url-validation';
+import { getLocalizedDebate, getLocalizedField } from '../../../lib/i18n-content';
 
 // Types
 interface TrendingArticle {
@@ -292,22 +293,25 @@ export const getServerSideProps: GetServerSideProps = async ({ params, locale })
       ? debateData.mainImageUrl 
       : null;
 
+    // Get localized content based on current locale
+    const localizedDebate = getLocalizedDebate(debateData, lng);
+
     const serializedDebate = {
       id: debateData.id,
-      title: debateData.title,
+      title: localizedDebate.title,
       slug: debateData.slug || '',
       category: debateData.category || 'Politics', // Map category
-      summary: debateData.summary || '',
+      summary: localizedDebate.summary,
       youtubeVideoId: validatedYoutubeVideoId,
       mainImageUrl: validatedMainImageUrl,
       authorName: 'Imuhira Staff',
       publishedAt: debateData.createdAt ? debateData.createdAt.toISOString() : null,
       
-      // 🟢 MAP NEW COLUMNS
+      // 🟢 MAP NEW COLUMNS with localized content
       proposerName: debateData.proposerName || 'Proposer',
-      proposerArguments: debateData.proposerArguments || '',
+      proposerArguments: localizedDebate.proposerArguments,
       opposerName: debateData.opposerName || 'Opposer',
-      opposerArguments: debateData.opposerArguments || '',
+      opposerArguments: localizedDebate.opposerArguments,
     };
 
     const trendingArticlesData = await db
@@ -318,19 +322,26 @@ export const getServerSideProps: GetServerSideProps = async ({ params, locale })
         .limit(5)
         .execute();
 
-    const trendingArticles = trendingArticlesData.map(a => ({
-        id: a.id,
-        title: a.title,
-        slug: a.slug || '',
-        category: {
-            name: a.category || 'News',
-            href: `/${lng}/category/${(a.category || 'news').toLowerCase()}`
-        },
-        content: [],
-        excerpt: a.summary ? a.summary.slice(0, 100) + '...' : '',
-        publishedAt: a.createdAt ? a.createdAt.toISOString() : null,
-        createdAt: a.createdAt ? a.createdAt.toISOString() : null,
-    }));
+    const trendingArticles = trendingArticlesData.map(a => {
+        // Get localized title for trending articles
+        const localizedTitle = getLocalizedField(a, 'title', lng);
+        return {
+            id: a.id,
+            title: localizedTitle,
+            slug: a.slug || '',
+            category: {
+                name: a.category || 'News',
+                href: `/${lng}/category/${(a.category || 'news').toLowerCase()}`
+            },
+            content: [],
+            excerpt: (() => {
+                const summary = getLocalizedField(a, 'summary', lng);
+                return summary ? summary.slice(0, 100) + '...' : '';
+            })(),
+            publishedAt: a.createdAt ? a.createdAt.toISOString() : null,
+            createdAt: a.createdAt ? a.createdAt.toISOString() : null,
+        };
+    });
 
     return {
       props: {

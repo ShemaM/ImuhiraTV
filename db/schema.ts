@@ -22,6 +22,24 @@ export const debates = pgTable('debates', {
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
   slug: text('slug').unique(),
+
+  // Swahili (sw) translations
+  titleSw: text('title_sw'),
+  summarySw: text('summary_sw'),
+  proposerArgumentsSw: text('proposer_arguments_sw'),
+  opposerArgumentsSw: text('opposer_arguments_sw'),
+
+  // French (fr) translations
+  titleFr: text('title_fr'),
+  summaryFr: text('summary_fr'),
+  proposerArgumentsFr: text('proposer_arguments_fr'),
+  opposerArgumentsFr: text('opposer_arguments_fr'),
+
+  // Kinyamulenge (kym) translations
+  titleKym: text('title_kym'),
+  summaryKym: text('summary_kym'),
+  proposerArgumentsKym: text('proposer_arguments_kym'),
+  opposerArgumentsKym: text('opposer_arguments_kym'),
 });
 
 // === COMMENTS TABLE ===

@@ -64,14 +64,26 @@
    ```
    Configure your database connection and other settings.
 
-4. **Run the development server**
+4. **Set up the database**
+
+   For a new database, run the setup script:
+   ```bash
+   psql -d your_database -f db/setup-schema.sql
+   ```
+
+   If upgrading an existing database, run the migration script to add translation columns:
+   ```bash
+   psql -d your_database -f db/add-translation-columns.sql
+   ```
+
+5. **Run the development server**
    ```bash
    npm run dev
    # or
    yarn dev
    ```
 
-5. **Open your browser**
+6. **Open your browser**
    Navigate to [http://localhost:3000](http://localhost:3000)
 
 ## 📁 Project Structure

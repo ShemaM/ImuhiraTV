@@ -8,133 +8,119 @@
 -- ============================================================================
 
 -- ============================================================================
--- STEP 1: Create Enum Types
+-- STEP 1: Create Tables (matches db/schema.ts)
 -- ============================================================================
 
--- Create debate_status enum if it doesn't exist
-DO $$ BEGIN
-    CREATE TYPE debate_status AS ENUM ('draft', 'published');
-EXCEPTION
-    WHEN duplicate_object THEN null;
-END $$;
-
--- Create faction enum if it doesn't exist
-DO $$ BEGIN
-    CREATE TYPE faction AS ENUM ('idubu', 'akagara');
-EXCEPTION
-    WHEN duplicate_object THEN null;
-END $$;
-
--- ============================================================================
--- STEP 2: Create Tables
--- ============================================================================
-
--- Users table (basic user information)
--- Note: This matches the existing Drizzle schema in db/schema.ts
--- Constraints are intentionally minimal to match the existing schema
-CREATE TABLE IF NOT EXISTS users (
-    id SERIAL PRIMARY KEY,
-    full_name TEXT,
-    phone VARCHAR(256)
-);
-
--- Debates table (stores debate posts derived from YouTube interviews)
+-- Debates table (stores debate posts with i18n support)
 CREATE TABLE IF NOT EXISTS debates (
-    id SERIAL PRIMARY KEY,
-    title VARCHAR(500) NOT NULL,
-    slug VARCHAR(500) NOT NULL UNIQUE,
-    topic TEXT NOT NULL,
-    summary TEXT,
-    verdict TEXT NOT NULL,
-    youtube_video_id VARCHAR(50),
-    youtube_video_title VARCHAR(500),
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    title TEXT NOT NULL,
+    category TEXT NOT NULL,
+    summary TEXT NOT NULL,
+    proposer_name TEXT NOT NULL,
+    proposer_arguments TEXT NOT NULL,
+    opposer_name TEXT NOT NULL,
+    opposer_arguments TEXT NOT NULL,
+    youtube_video_id TEXT,
     main_image_url TEXT,
-    author_name VARCHAR(255) DEFAULT 'Imuhira Staff',
-    status debate_status DEFAULT 'draft',
+    is_published BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW(),
-    published_at TIMESTAMP
+    slug TEXT UNIQUE,
+    
+    -- Swahili (sw) translations
+    title_sw TEXT,
+    summary_sw TEXT,
+    proposer_arguments_sw TEXT,
+    opposer_arguments_sw TEXT,
+    
+    -- French (fr) translations
+    title_fr TEXT,
+    summary_fr TEXT,
+    proposer_arguments_fr TEXT,
+    opposer_arguments_fr TEXT,
+    
+    -- Kinyamulenge (kym) translations
+    title_kym TEXT,
+    summary_kym TEXT,
+    proposer_arguments_kym TEXT,
+    opposer_arguments_kym TEXT
 );
 
--- Debate Arguments table (stores individual arguments from both factions)
-CREATE TABLE IF NOT EXISTS debate_arguments (
-    id SERIAL PRIMARY KEY,
-    debate_id INTEGER NOT NULL REFERENCES debates(id) ON DELETE CASCADE,
-    faction faction NOT NULL,
-    speaker_name VARCHAR(255),
-    argument TEXT NOT NULL,
-    order_index INTEGER DEFAULT 0,
+-- Articles table (stores articles with i18n support)
+CREATE TABLE IF NOT EXISTS articles (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    title TEXT NOT NULL,
+    slug TEXT NOT NULL UNIQUE,
+    excerpt TEXT,
+    content TEXT NOT NULL,
+    
+    -- Swahili (sw) translations
+    title_sw TEXT,
+    excerpt_sw TEXT,
+    content_sw TEXT,
+    
+    -- French (fr) translations
+    title_fr TEXT,
+    excerpt_fr TEXT,
+    content_fr TEXT,
+    
+    -- Kinyamulenge (kym) translations
+    title_kym TEXT,
+    excerpt_kym TEXT,
+    content_kym TEXT,
+    
+    -- Shared Media & Metadata
+    video_url TEXT,
+    cover_image TEXT,
+    is_published BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Comments table (for both debates and articles)
+CREATE TABLE IF NOT EXISTS comments (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    debate_id UUID REFERENCES debates(id) ON DELETE CASCADE,
+    article_id UUID REFERENCES articles(id) ON DELETE CASCADE,
+    parent_id UUID,
+    author_name TEXT NOT NULL,
+    content TEXT NOT NULL,
+    likes INTEGER DEFAULT 0,
+    created_at TIMESTAMP DEFAULT NOW(),
+    is_approved BOOLEAN DEFAULT TRUE
+);
+
+-- Subscribers table
+CREATE TABLE IF NOT EXISTS subscribers (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    email TEXT NOT NULL UNIQUE,
+    is_active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMP DEFAULT NOW()
 );
 
 -- ============================================================================
--- STEP 3: Create Indexes for Better Performance
+-- STEP 2: Create Indexes for Better Performance
 -- ============================================================================
 
--- Index for faster slug lookups (used in the debate page)
+-- Index for faster slug lookups
 CREATE INDEX IF NOT EXISTS idx_debates_slug ON debates(slug);
+CREATE INDEX IF NOT EXISTS idx_articles_slug ON articles(slug);
 
--- Index for faster status filtering
-CREATE INDEX IF NOT EXISTS idx_debates_status ON debates(status);
+-- Index for is_published filtering
+CREATE INDEX IF NOT EXISTS idx_debates_is_published ON debates(is_published);
+CREATE INDEX IF NOT EXISTS idx_articles_is_published ON articles(is_published);
 
 -- Index for ordering by created_at
 CREATE INDEX IF NOT EXISTS idx_debates_created_at ON debates(created_at);
+CREATE INDEX IF NOT EXISTS idx_articles_created_at ON articles(created_at);
 
--- Index for faster argument lookups by debate_id
-CREATE INDEX IF NOT EXISTS idx_debate_arguments_debate_id ON debate_arguments(debate_id);
+-- Index for category filtering
+CREATE INDEX IF NOT EXISTS idx_debates_category ON debates(category);
 
--- Index for faction filtering
-CREATE INDEX IF NOT EXISTS idx_debate_arguments_faction ON debate_arguments(faction);
-
--- ============================================================================
--- STEP 4: Enable Row Level Security (Optional for Supabase)
--- ============================================================================
--- Uncomment these lines if you want to enable RLS for Supabase
-
--- ALTER TABLE users ENABLE ROW LEVEL SECURITY;
--- ALTER TABLE debates ENABLE ROW LEVEL SECURITY;
--- ALTER TABLE debate_arguments ENABLE ROW LEVEL SECURITY;
-
--- ============================================================================
--- STEP 5: Create Policies (Optional for Supabase)
--- ============================================================================
--- These policies allow public read access to published debates
--- Uncomment and customize as needed
-
--- Policy: Anyone can read published debates
--- CREATE POLICY "Public can read published debates" ON debates
---     FOR SELECT
---     USING (status = 'published');
-
--- Policy: Anyone can read arguments of published debates
--- CREATE POLICY "Public can read debate arguments" ON debate_arguments
---     FOR SELECT
---     USING (
---         EXISTS (
---             SELECT 1 FROM debates 
---             WHERE debates.id = debate_arguments.debate_id 
---             AND debates.status = 'published'
---         )
---     );
-
--- ============================================================================
--- Verification Queries
--- ============================================================================
--- Run these queries to verify the setup was successful:
-
--- List all tables:
--- SELECT tablename FROM pg_tables WHERE schemaname = 'public';
-
--- List all enum types:
--- SELECT typname FROM pg_type t 
--- INNER JOIN pg_namespace n ON t.typnamespace = n.oid 
--- WHERE n.nspname = 'public' AND t.typtype = 'e';
-
--- Describe debates table:
--- \d debates;
-
--- Describe debate_arguments table:
--- \d debate_arguments;
+-- Index for comment lookups
+CREATE INDEX IF NOT EXISTS idx_comments_debate_id ON comments(debate_id);
+CREATE INDEX IF NOT EXISTS idx_comments_article_id ON comments(article_id);
 
 -- ============================================================================
 -- DONE! Your database schema is ready for ImuhiraTV.

@@ -3,6 +3,8 @@ import { pgTable, text, uuid, boolean, timestamp, integer } from 'drizzle-orm/pg
 import { relations } from 'drizzle-orm';
 
 // === DEBATES TABLE ===
+// Note: Translation columns (title_sw, title_fr, title_kym, etc.) are defined 
+// in add-translation-columns.sql. Run that migration to enable i18n support.
 export const debates = pgTable('debates', {
   id: uuid('id').defaultRandom().primaryKey(),
   title: text('title').notNull(),
@@ -22,24 +24,6 @@ export const debates = pgTable('debates', {
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
   slug: text('slug').unique(),
-
-  // Swahili (sw) translations
-  titleSw: text('title_sw'),
-  summarySw: text('summary_sw'),
-  proposerArgumentsSw: text('proposer_arguments_sw'),
-  opposerArgumentsSw: text('opposer_arguments_sw'),
-
-  // French (fr) translations
-  titleFr: text('title_fr'),
-  summaryFr: text('summary_fr'),
-  proposerArgumentsFr: text('proposer_arguments_fr'),
-  opposerArgumentsFr: text('opposer_arguments_fr'),
-
-  // Kinyamulenge (kym) translations
-  titleKym: text('title_kym'),
-  summaryKym: text('summary_kym'),
-  proposerArgumentsKym: text('proposer_arguments_kym'),
-  opposerArgumentsKym: text('opposer_arguments_kym'),
 });
 
 // === COMMENTS TABLE ===
@@ -57,7 +41,9 @@ export const comments = pgTable('comments', {
   isApproved: boolean('is_approved').default(true),
 });
 
-// === ARTICLES TABLE (Updated for i18n) ===
+// === ARTICLES TABLE ===
+// Note: Translation columns (title_sw, title_fr, title_kym, etc.) are defined 
+// in add-translation-columns.sql. Run that migration to enable i18n support.
 export const articles = pgTable('articles', {
   id: uuid('id').defaultRandom().primaryKey(),
   
@@ -66,21 +52,6 @@ export const articles = pgTable('articles', {
   slug: text('slug').notNull().unique(),
   excerpt: text('excerpt'),
   content: text('content').notNull(),
-  
-  // Swahili (sw)
-  titleSw: text('title_sw'),
-  excerptSw: text('excerpt_sw'),
-  contentSw: text('content_sw'),
-
-  // French (fr)
-  titleFr: text('title_fr'),
-  excerptFr: text('excerpt_fr'),
-  contentFr: text('content_fr'),
-
-  // Kinyamulenge (kym) - Optimized for special alphabet/vowels
-  titleKym: text('title_kym'),
-  excerptKym: text('excerpt_kym'),
-  contentKym: text('content_kym'),
 
   // Shared Media & Metadata
   videoUrl: text('video_url'),

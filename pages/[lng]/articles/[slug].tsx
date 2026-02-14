@@ -22,7 +22,7 @@ import {
   isValidImageUrl,
   extractAndValidateYouTubeVideoId 
 } from '../../../lib/url-validation';
-import { getLocalizedArticle, getLocalizedDebate } from '../../../lib/i18n-content';
+import { getLocalizedArticle, getLocalizedDebate, getLocalizedField } from '../../../lib/i18n-content';
 
 const PLACEHOLDER_IMAGE = '/images/logo.jpg';
 const PLACEHOLDER_AUTHOR = 'Imuhira Staff';
@@ -310,7 +310,7 @@ export const getStaticProps: GetStaticProps = async ({ params, locale }) => {
     const trendingData = await db.select().from(debates).orderBy(desc(debates.createdAt)).limit(5);
     const trendingArticles = trendingData.map(a => ({
         id: a.id,
-        title: a.title,
+        title: getLocalizedField(a, 'title', currentLocale),
         slug: a.slug || '',
         mainImageUrl: a.mainImageUrl || '',
         publishedAt: formatDate(a.createdAt),

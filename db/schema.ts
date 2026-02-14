@@ -72,6 +72,14 @@ export const articles = pgTable('articles', {
   updatedAt: timestamp('updated_at').defaultNow(),
 });
 
+// === SUBSCRIBERS TABLE ===
+export const subscribers = pgTable('subscribers', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  email: text('email').notNull().unique(),
+  isActive: boolean('is_active').default(true),
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
 // === RELATIONSHIPS ===
 
 export const debatesRelations = relations(debates, ({ many }) => ({

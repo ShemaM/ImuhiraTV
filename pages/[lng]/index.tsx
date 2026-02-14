@@ -9,6 +9,7 @@ import ArticleCard from '../../components/common/ArticleCard';
 import SectionHeader from '../../components/common/SectionHeader';
 import TrendingWidget from '../../components/common/TrendingWidget';
 import AdBanner from '../../components/common/AdBanner';
+import SubscribeWidget from '../../components/common/SubscribeWidget';
 import Layout from '../../components/layouts/Layout';
 import { languages } from '../../i18n/settings';
 import { db } from '../../db';
@@ -84,18 +85,7 @@ export default function Home({ featuredArticle, latestArticles, trendingArticles
           <AdBanner type="sidebar" />
 
           {/* Newsletter */}
-          <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-            <h3 className="font-bold text-gray-900 mb-2">{t('Subscribe')}</h3>
-            <p className="text-sm text-gray-600 mb-4">{t('Get the latest updates delivered to your inbox.')}</p>
-            <input 
-              type="email" 
-              placeholder={t('Your email address')}
-              className="w-full px-3 py-2 border border-gray-300 rounded mb-2 text-sm"
-            />
-            <button className="w-full bg-red-600 text-white text-sm font-bold py-2 rounded hover:bg-red-700 transition-colors">
-              {t('Join Now')}
-            </button>
-          </div>
+          <SubscribeWidget variant="light" />
         </Sidebar>
 
       </div>

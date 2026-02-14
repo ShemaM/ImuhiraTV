@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { fallbackLng, languages } from './i18n/settings';
 
-export function proxy(req: NextRequest) {
+export default function proxy(req: NextRequest) {
   const pathname = req.nextUrl.pathname;
 
   // Skip admin routes - they don't need locale prefixes

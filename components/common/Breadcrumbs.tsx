@@ -9,7 +9,7 @@ import { ChevronRightIcon } from '@heroicons/react/24/outline';
  * Creates a dynamic breadcrumb navigation based on the current URL path.
  * Features:
  * - Parses the current URL path and generates clickable links for each level
- * - Home link always points to the root (/)
+ * - Home link points to the language root (e.g., /en, /fr)
  * - Automatically formats segment strings (capitalizes, removes hyphens)
  * - Uses next/link for routing, inheriting the active i18n locale
  * - Styled with Tailwind CSS (slate-500 for parents, slate-900 for current page)

@@ -1,7 +1,6 @@
 import { useRouter } from 'next/router';
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import Router from 'next/router';
 
 /**
  * GlobalLoader Component
@@ -29,18 +28,18 @@ export default function GlobalLoader() {
       setLoading(false);
     };
 
-    // Subscribe to Router events
-    Router.events.on('routeChangeStart', handleStart);
-    Router.events.on('routeChangeComplete', handleComplete);
-    Router.events.on('routeChangeError', handleComplete);
+    // Subscribe to router events
+    router.events.on('routeChangeStart', handleStart);
+    router.events.on('routeChangeComplete', handleComplete);
+    router.events.on('routeChangeError', handleComplete);
 
     // Cleanup event listeners on unmount
     return () => {
-      Router.events.off('routeChangeStart', handleStart);
-      Router.events.off('routeChangeComplete', handleComplete);
-      Router.events.off('routeChangeError', handleComplete);
+      router.events.off('routeChangeStart', handleStart);
+      router.events.off('routeChangeComplete', handleComplete);
+      router.events.off('routeChangeError', handleComplete);
     };
-  }, [router.asPath]);
+  }, [router]);
 
   if (!loading) return null;
 
